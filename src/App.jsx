@@ -89,7 +89,7 @@ function DashboardPrincipal() {
 // cerrar sesion
   const handleLogout = async () => {
     try{
-    await fetch("http://localhost:3000/auth/logout", {
+    await fetch("https://api-renacer.onrender.com/auth/logout", {
       method: "POST",
       credentials: "include", // MUY IMPORTANTE para cookies
   });
@@ -234,7 +234,7 @@ function App() {
     }
     
     // Validación de credenciales
-    const res = await fetch("http://localhost:3000/auth/login", {
+    const res = await fetch("https://api-renacer.onrender.com/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // MUY IMPORTANTE para cookies
