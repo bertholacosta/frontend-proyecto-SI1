@@ -89,14 +89,14 @@ function DashboardPrincipal() {
 // cerrar sesion
   const handleLogout = async () => {
     try{
-    await fetch("https://api-renacer.onrender.com/auth/logout", {
+    await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include", // MUY IMPORTANTE para cookies
-  });
-     }catch (error) {
-    console.error("Error al cerrar sesión:", error);
-  }
-};
+    });
+    }catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
 
 
 
@@ -234,7 +234,7 @@ function App() {
     }
     
     // Validación de credenciales
-    const res = await fetch("https://api-renacer.onrender.com/auth/login", {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // MUY IMPORTANTE para cookies
