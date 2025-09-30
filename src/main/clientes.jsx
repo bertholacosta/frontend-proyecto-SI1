@@ -24,7 +24,7 @@ function Clientes() {
   useEffect(() => {
     async function getClientes() {
       try {
-        const res = await fetch("http://localhost:3000/registro/clientes", {
+        const res = await fetch("https://localhost:3000/cliente", {
           method: "GET",
           credentials: "include", // MUY IMPORTANTE para cookies
         });

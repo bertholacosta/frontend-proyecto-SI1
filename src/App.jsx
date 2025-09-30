@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Container,
@@ -73,7 +73,7 @@ const theme = createTheme({
 })
 
 // Componente DashboardPrincipal
-function DashboardPrincipal() {
+function DashboardPrincipal({ userInfo, onLogout }) {
   const [drawerOpen, setDrawerOpen] = useState(true)
   const [selectedItem, setSelectedItem] = useState('dashboard')
 
@@ -86,16 +86,9 @@ function DashboardPrincipal() {
     { id: 'facturas', label: 'Facturas', icon: <ReceiptIcon /> },
     { id: 'configuracion', label: 'Configuración', icon: <SettingsIcon /> },
   ]
-// cerrar sesion
-  const handleLogout = async () => {
-    try{
-      await fetch("https://api-renacer.onrender.com/auth/logout", {
-        method: "POST",
-        credentials: "include", // MUY IMPORTANTE para cookies
-      });
-    }catch (error) {
-      console.error("Error al cerrar sesión:", error);
-    }
+// Usar la función de logout del componente padre
+  const handleLogout = () => {
+    onLogout();
   };
 
 
@@ -190,6 +183,11 @@ function DashboardPrincipal() {
               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                 {menuItems.find(item => item.id === selectedItem)?.label || 'Dashboard'}
               </Typography>
+              {userInfo && (
+                <Typography variant="body2" sx={{ mr: 2, color: 'rgba(255, 255, 255, 0.8)' }}>
+                  Bienvenido, {userInfo.usuario}
+                </Typography>
+              )}
             </Toolbar>
           </AppBar>
           
@@ -225,6 +223,34 @@ function App() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [userInfo, setUserInfo] = useState(null)
+
+  // Verificar sesión existente al cargar la aplicación
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/auth/verify", {
+          method: "GET",
+          credentials: "include",
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setIsLoggedIn(true);
+            setUserInfo(data.user);
+          }
+        }
+      } catch (error) {
+        console.error("Error al verificar sesión:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifySession();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -233,25 +259,77 @@ function App() {
       return
     }
     
-    // Validación de credenciales
-    const res = await fetch("https://api-renacer.onrender.com/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // MUY IMPORTANTE para cookies
-      body: JSON.stringify({ usuario, contrasena: password })
-    });
-    if (res.ok) {
-      setError('')
-      setIsLoggedIn(true)
-      console.log('Login exitoso')
-    } else {
-      setError('Usuario o contraseña incorrectos')
+    try {
+      setError('');
+      const res = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // MUY IMPORTANTE para cookies
+        body: JSON.stringify({ usuario, contrasena: password })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        setIsLoggedIn(true);
+        setUserInfo(data.user);
+        console.log('Login exitoso:', data.message);
+      } else {
+        setError(data.message || 'Usuario o contraseña incorrectos');
+      }
+    } catch (error) {
+      console.error('Error en login:', error);
+      setError('Error de conexión. Verifica que el servidor esté funcionando.');
     }
+  }
+
+  // Función de logout para pasar al dashboard
+  const handleAppLogout = async () => {
+    try{
+      const response = await fetch("http://localhost:3000/auth/logout", {
+        method: "POST",
+        credentials: "include", // MUY IMPORTANTE para cookies
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        console.log('Logout exitoso:', data.message);
+      }
+    }catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    } finally {
+      // Siempre limpiar el estado local independientemente del resultado
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      setUsuario('');
+      setPassword('');
+    }
+  };
+
+  // Mostrar loading mientras se verifica la sesión
+  if (isLoading) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh',
+          backgroundColor: '#000'
+        }}>
+          <Typography variant="h6" color="primary">
+            Verificando sesión...
+          </Typography>
+        </Box>
+      </ThemeProvider>
+    );
   }
 
   // Si está logueado, mostrar el dashboard
   if (isLoggedIn) {
-    return <DashboardPrincipal />
+    return <DashboardPrincipal userInfo={userInfo} onLogout={handleAppLogout} />
   }
 
   return (

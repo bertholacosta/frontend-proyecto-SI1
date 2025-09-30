@@ -14,7 +14,7 @@ function NuevoCliente({ show, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await fetch("http://localhost:3000/registro/cliente", {
+    await fetch("https://localhost:3000/cliente", {
       method: "POST",
       headers: {
         "Content-Type": "application/json", // importante
