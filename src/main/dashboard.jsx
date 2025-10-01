@@ -1,15 +1,63 @@
-import { Box, Typography, Grid, Card, CardContent, CardActions, Button } from '@mui/material'
+import { Box, Typography, Grid, Card, CardContent, CardActions, Button, CircularProgress } from '@mui/material'
 import { TrendingUp, People, DirectionsBike, Build, Inventory, Receipt } from '@mui/icons-material'
+import { useEffect, useState } from 'react'
 
 function Dashboard() {
-  const stats = [
-    { title: 'Clientes Activos', value: '156', icon: <People />, color: '#ff8c42' },
-    { title: 'Motos Registradas', value: '89', icon: <DirectionsBike />, color: '#4caf50' },
-    { title: 'Servicios Pendientes', value: '23', icon: <Build />, color: '#2196f3' },
-    { title: 'Repuestos en Stock', value: '342', icon: <Inventory />, color: '#9c27b0' },
-    { title: 'Facturas del Mes', value: '45', icon: <Receipt />, color: '#f44336' },
-    { title: 'Ingresos del Mes', value: '$12,450', icon: <TrendingUp />, color: '#4caf50' },
-  ]
+  const [stats, setStats] = useState([
+    { title: 'Clientes Activos', value: 'Cargando...', icon: <People />, color: '#ff8c42', loading: true },
+  //  { title: 'Motos Registradas', value: '89', icon: <DirectionsBike />, color: '#4caf50' },
+  //  { title: 'Servicios Pendientes', value: '23', icon: <Build />, color: '#2196f3' },
+  //  { title: 'Repuestos en Stock', value: '342', icon: <Inventory />, color: '#9c27b0' },
+  //  { title: 'Facturas del Mes', value: '45', icon: <Receipt />, color: '#f44336' },
+  //  { title: 'Ingresos del Mes', value: '$12,450', icon: <TrendingUp />, color: '#4caf50' },
+  ])
+
+  // Cargar estadísticas desde la API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Obtener total de clientes
+        const clientesRes = await fetch('http://localhost:3000/clientes?page=1&limit=1', {
+          method: 'GET',
+          credentials: 'include',
+        })
+        
+        if (clientesRes.ok) {
+          const clientesData = await clientesRes.json()
+          const totalClientes = clientesData.pagination?.totalClientes || 0
+          
+          setStats(prevStats => 
+            prevStats.map(stat => 
+              stat.title === 'Clientes Activos' 
+                ? { ...stat, value: totalClientes.toString(), loading: false }
+                : stat
+            )
+          )
+        } else {
+          // En caso de error, mostrar 0
+          setStats(prevStats => 
+            prevStats.map(stat => 
+              stat.title === 'Clientes Activos' 
+                ? { ...stat, value: '0', loading: false }
+                : stat
+            )
+          )
+        }
+      } catch (error) {
+        console.error('Error al cargar estadísticas:', error)
+        // En caso de error, mostrar 0
+        setStats(prevStats => 
+          prevStats.map(stat => 
+            stat.title === 'Clientes Activos' 
+              ? { ...stat, value: '0', loading: false }
+              : stat
+          )
+        )
+      }
+    }
+
+    fetchStats()
+  }, [])
 
   return (
     <Box>
@@ -46,7 +94,11 @@ function Dashboard() {
                   </Typography>
                 </Box>
                 <Typography variant="h4" color="primary" fontWeight="bold">
-                  {stat.value}
+                  {stat.loading ? (
+                    <CircularProgress size={24} sx={{ color: stat.color }} />
+                  ) : (
+                    stat.value
+                  )}
                 </Typography>
               </CardContent>
               <CardActions>

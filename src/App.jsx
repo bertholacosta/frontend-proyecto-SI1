@@ -24,6 +24,8 @@ import {
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
+  Badge as BadgeIcon,
+  ManageAccounts as ManageAccountsIcon,
   DirectionsBike as BikeIcon,
   Build as BuildIcon,
   Inventory as InventoryIcon,
@@ -36,10 +38,8 @@ import {
 // Importar componentes de las páginas
 import Dashboard from './main/dashboard'
 import Clientes from './main/clientes'
-import Motos from './main/motos'
-import Servicios from './main/servicios'
-import Inventario from './main/inventario'
-import Facturas from './main/facturas'
+import Empleados from './main/empleados'
+import Usuarios from './main/usuarios'
 import Configuracion from './main/configuracion'
 
 import './App.css'
@@ -73,23 +73,27 @@ const theme = createTheme({
 })
 
 // Componente DashboardPrincipal
-function DashboardPrincipal({ userInfo, onLogout }) {
+function DashboardPrincipal({ onLogout, userInfo }) {
   const [drawerOpen, setDrawerOpen] = useState(true)
   const [selectedItem, setSelectedItem] = useState('dashboard')
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon /> },
-    { id: 'clientes', label: 'Clientes', icon: <PeopleIcon /> },
-    { id: 'motos', label: 'Motos', icon: <BikeIcon /> },
-    { id: 'servicios', label: 'Servicios', icon: <BuildIcon /> },
-    { id: 'inventario', label: 'Inventario', icon: <InventoryIcon /> },
-    { id: 'facturas', label: 'Facturas', icon: <ReceiptIcon /> },
-    { id: 'configuracion', label: 'Configuración', icon: <SettingsIcon /> },
+  // Definir todos los elementos del menú
+  const allMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, adminOnly: false },
+    { id: 'clientes', label: 'Clientes', icon: <PeopleIcon />, adminOnly: false },
+    { id: 'empleados', label: 'Empleados', icon: <BadgeIcon />, adminOnly: true },
+    { id: 'usuarios', label: 'Usuarios', icon: <ManageAccountsIcon />, adminOnly: true },
+   // { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
+   // { id: 'servicios', label: 'Servicios', icon: <BuildIcon />, adminOnly: false },
+   // { id: 'inventario', label: 'Inventario', icon: <InventoryIcon />, adminOnly: false },
+    //{ id: 'facturas', label: 'Facturas', icon: <ReceiptIcon />, adminOnly: false },
+    { id: 'configuracion', label: 'Configuración', icon: <SettingsIcon />, adminOnly: false },
   ]
-// Usar la función de logout del componente padre
-  const handleLogout = () => {
-    onLogout();
-  };
+
+  // Filtrar elementos del menú según el rol del usuario
+  const menuItems = allMenuItems.filter(item => 
+    !item.adminOnly || userInfo.isAdmin
+  )
 
 
 
@@ -151,7 +155,7 @@ function DashboardPrincipal({ userInfo, onLogout }) {
           <List>
             <ListItem disablePadding>
               <ListItemButton
-                onClick={handleLogout}
+                onClick={onLogout}
                 sx={{
                   color: 'white',
                   '&:hover': {
@@ -183,11 +187,23 @@ function DashboardPrincipal({ userInfo, onLogout }) {
               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                 {menuItems.find(item => item.id === selectedItem)?.label || 'Dashboard'}
               </Typography>
-              {userInfo && (
-                <Typography variant="body2" sx={{ mr: 2, color: 'rgba(255, 255, 255, 0.8)' }}>
-                  Bienvenido, {userInfo.usuario}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="body2" color="inherit">
+                  {userInfo.usuario}
                 </Typography>
-              )}
+                {userInfo.isAdmin && (
+                  <Box sx={{ 
+                    backgroundColor: '#ff8c42', 
+                    px: 1, 
+                    py: 0.5, 
+                    borderRadius: 1,
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold'
+                  }}>
+                    ADMIN
+                  </Box>
+                )}
+              </Box>
             </Toolbar>
           </AppBar>
           
@@ -204,6 +220,8 @@ function DashboardPrincipal({ userInfo, onLogout }) {
               <Box sx={{ mt: 4 }}>
                 {selectedItem === 'dashboard' && <Dashboard />}
                 {selectedItem === 'clientes' && <Clientes />}
+                {selectedItem === 'empleados' && <Empleados />}
+                {selectedItem === 'usuarios' && <Usuarios />}
                 {selectedItem === 'motos' && <Motos />}
                 {selectedItem === 'servicios' && <Servicios />}
                 {selectedItem === 'inventario' && <Inventario />}
@@ -223,34 +241,115 @@ function App() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [userInfo, setUserInfo] = useState(null)
+  const [isLoading, setIsLoading] = useState(true) // Para mostrar loading mientras verifica sesión
+  const [userInfo, setUserInfo] = useState({
+    usuario: '',
+    email: '',
+    isAdmin: false,
+    empleado_ci: null
+  })
 
-  // Verificar sesión existente al cargar la aplicación
+  // Verificar sesión al cargar la página
   useEffect(() => {
-    const verifySession = async () => {
+    const verificarSesion = async () => {
       try {
-        const response = await fetch("http://localhost:3000/auth/verify", {
+        console.log('Iniciando verificación de sesión...');
+        
+        // Las cookies httpOnly no son accesibles desde JavaScript
+        // Siempre intentar verificar con el servidor
+        
+        // Crear un timeout para la verificación (más agresivo)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos timeout
+        
+        const res = await fetch("http://localhost:3000/auth/verificar", {
           method: "GET",
-          credentials: "include",
+          credentials: "include", // Importante para enviar cookies
+          signal: controller.signal
         });
         
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setIsLoggedIn(true);
-            setUserInfo(data.user);
-          }
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setIsLoggedIn(true);
+          setUsuario(data.usuario);
+          setUserInfo({
+            usuario: data.usuario,
+            email: data.email,
+            isAdmin: data.isAdmin,
+            empleado_ci: data.empleado_ci
+          });
+          console.log('Sesión restaurada exitosamente:', data.usuario, 'Admin:', data.isAdmin);
+        } else {
+          console.log('No hay sesión activa, código:', res.status);
+          // Asegurar que el estado esté limpio
+          setIsLoggedIn(false);
+          setUsuario('');
+          setUserInfo({
+            usuario: '',
+            email: '',
+            isAdmin: false,
+            empleado_ci: null
+          });
         }
       } catch (error) {
-        console.error("Error al verificar sesión:", error);
+        if (error.name === 'AbortError') {
+          console.log('Timeout en verificación de sesión');
+        } else {
+          console.error('Error al verificar sesión:', error);
+        }
       } finally {
+        console.log('Finalizando verificación de sesión');
         setIsLoading(false);
       }
     };
 
-    verifySession();
+    verificarSesion();
+
+    // Timeout de seguridad: asegurar que el loading desaparezca después de 3 segundos máximo
+    const safetyTimeout = setTimeout(() => {
+      if (isLoading) {
+        console.log('Timeout de seguridad activado, ocultando loading');
+        setIsLoading(false);
+      }
+    }, 3000);
+
+    return () => clearTimeout(safetyTimeout);
   }, []);
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    try{
+      await fetch("http://localhost:3000/auth/logout", {
+        method: "POST",
+        credentials: "include", // MUY IMPORTANTE para cookies
+      });
+      // Actualizar el estado local
+      setIsLoggedIn(false);
+      setUsuario('');
+      setPassword('');
+      setUserInfo({
+        usuario: '',
+        email: '',
+        isAdmin: false,
+        empleado_ci: null
+      });
+      console.log('Sesión cerrada exitosamente');
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      // Aún así cerrar sesión localmente
+      setIsLoggedIn(false);
+      setUsuario('');
+      setPassword('');
+      setUserInfo({
+        usuario: '',
+        email: '',
+        isAdmin: false,
+        empleado_ci: null
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -259,77 +358,63 @@ function App() {
       return
     }
     
-    try {
-      setError('');
-      const res = await fetch("http://localhost:3000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // MUY IMPORTANTE para cookies
-        body: JSON.stringify({ usuario, contrasena: password })
-      });
-      
+    // Validación de credenciales
+    const res = await fetch("http://localhost:3000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // MUY IMPORTANTE para cookies
+      body: JSON.stringify({ usuario, contrasena: password })
+    });
+    if (res.ok) {
       const data = await res.json();
-      
-      if (res.ok && data.success) {
-        setIsLoggedIn(true);
-        setUserInfo(data.user);
-        console.log('Login exitoso:', data.message);
-      } else {
-        setError(data.message || 'Usuario o contraseña incorrectos');
-      }
-    } catch (error) {
-      console.error('Error en login:', error);
-      setError('Error de conexión. Verifica que el servidor esté funcionando.');
+      setError('')
+      setIsLoggedIn(true)
+      setUserInfo({
+        usuario: data.usuario,
+        email: data.email,
+        isAdmin: data.isAdmin,
+        empleado_ci: data.empleado_ci
+      });
+      console.log('Login exitoso', 'Admin:', data.isAdmin)
+    } else {
+      setError('Usuario o contraseña incorrectos')
     }
   }
 
-  // Función de logout para pasar al dashboard
-  const handleAppLogout = async () => {
-    try{
-      const response = await fetch("http://localhost:3000/auth/logout", {
-        method: "POST",
-        credentials: "include", // MUY IMPORTANTE para cookies
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        console.log('Logout exitoso:', data.message);
-      }
-    }catch (error) {
-      console.error("Error al cerrar sesión:", error);
-    } finally {
-      // Siempre limpiar el estado local independientemente del resultado
-      setIsLoggedIn(false);
-      setUserInfo(null);
-      setUsuario('');
-      setPassword('');
-    }
-  };
-
-  // Mostrar loading mientras se verifica la sesión
+  // Mostrar loading mientras verifica sesión
   if (isLoading) {
     return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5'
+      }}>
         <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh',
-          backgroundColor: '#000'
-        }}>
-          <Typography variant="h6" color="primary">
-            Verificando sesión...
-          </Typography>
-        </Box>
-      </ThemeProvider>
+          width: 40, 
+          height: 40, 
+          border: '4px solid #e0e0e0',
+          borderTop: '4px solid #ff8c42',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          mb: 2
+        }} />
+        <Typography variant="body1" color="text.secondary">Cargando...</Typography>
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </Box>
     );
   }
 
   // Si está logueado, mostrar el dashboard
   if (isLoggedIn) {
-    return <DashboardPrincipal userInfo={userInfo} onLogout={handleAppLogout} />
+    return <DashboardPrincipal onLogout={handleLogout} userInfo={userInfo} />
   }
 
   return (

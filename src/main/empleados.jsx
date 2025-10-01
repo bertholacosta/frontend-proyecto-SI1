@@ -30,9 +30,9 @@ import {
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 
-function Clientes() {
+function Empleados() {
   // Estados
-  const [clientes, setClientes] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState('');
@@ -42,7 +42,7 @@ function Clientes() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalClientes, setTotalClientes] = useState(0);
+  const [totalEmpleados, setTotalEmpleados] = useState(0);
   const [sortBy, setSortBy] = useState('nombre');
   const [sortOrder, setSortOrder] = useState('asc');
   const [isSearching, setIsSearching] = useState(false);
@@ -52,18 +52,19 @@ function Clientes() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedCliente, setSelectedCliente] = useState(null);
+  const [selectedEmpleado, setSelectedEmpleado] = useState(null);
   
   // Estados para formularios
   const [formData, setFormData] = useState({
     ci: '',
     nombre: '',
-    telefono: '',
-    direccion: ''
+    fechanac: '',
+    direccion: '',
+    telefono: ''
   });
 
-  // Cargar clientes con paginación
-  const fetchClientes = async (currentPage = page, currentRowsPerPage = rowsPerPage) => {
+  // Cargar empleados con paginación
+  const fetchEmpleados = async (currentPage = page, currentRowsPerPage = rowsPerPage) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -73,34 +74,34 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/clientes?${params}`, {
+      const res = await fetch(`http://localhost:3000/empleados?${params}`, {
         method: "GET",
         credentials: "include",
       });
       
       if (res.ok) {
         const data = await res.json();
-        setClientes(data.clientes || []);
+        setEmpleados(data.empleados || []);
         setTotalPages(data.pagination?.totalPages || 0);
-        setTotalClientes(data.pagination?.totalClientes || 0);
+        setTotalEmpleados(data.pagination?.totalEmpleados || 0);
         setIsSearching(false);
       } else {
-        throw new Error('Error al obtener clientes');
+        throw new Error('Error al obtener empleados');
       }
     } catch (error) {
-      console.error("Error al obtener clientes:", error);
-      setError('Error al cargar clientes');
+      console.error("Error al obtener empleados:", error);
+      setError('Error al cargar empleados');
     } finally {
       setLoading(false);
     }
   };
 
-  // Buscar clientes con paginación
-  const searchClientes = async (currentPage = 1) => {
+  // Buscar empleados con paginación
+  const searchEmpleados = async (currentPage = 1) => {
     if (!searchTerm.trim()) {
       setIsSearching(false);
       setPage(1);
-      fetchClientes(1, rowsPerPage);
+      fetchEmpleados(1, rowsPerPage);
       return;
     }
     
@@ -115,32 +116,32 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/clientes/search?${params}`, {
+      const res = await fetch(`http://localhost:3000/empleados/search?${params}`, {
         method: "GET",
         credentials: "include",
       });
       
       if (res.ok) {
         const data = await res.json();
-        setClientes(data.clientes || []);
+        setEmpleados(data.empleados || []);
         setTotalPages(data.pagination?.totalPages || 0);
-        setTotalClientes(data.pagination?.totalResults || 0);
+        setTotalEmpleados(data.pagination?.totalResults || 0);
         setPage(currentPage);
       } else {
         throw new Error('Error en la búsqueda');
       }
     } catch (error) {
-      console.error("Error al buscar clientes:", error);
+      console.error("Error al buscar empleados:", error);
       setError('Error en la búsqueda');
     } finally {
       setLoading(false);
     }
   };
 
-  // Crear cliente
-  const createCliente = async () => {
+  // Crear empleado
+  const createEmpleado = async () => {
     try {
-      const res = await fetch("http://localhost:3000/clientes", {
+      const res = await fetch("http://localhost:3000/empleados", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -149,67 +150,68 @@ function Clientes() {
       
       if (res.ok) {
         const data = await res.json();
-        setSuccess('Cliente creado exitosamente');
+        setSuccess('Empleado creado exitosamente');
         setShowCreateModal(false);
         resetForm();
         refreshData();
       } else {
         const errorData = await res.json();
-        throw new Error(errorData.error || 'Error al crear cliente');
+        throw new Error(errorData.error || 'Error al crear empleado');
       }
     } catch (error) {
-      console.error("Error al crear cliente:", error);
+      console.error("Error al crear empleado:", error);
       setError(error.message);
     }
   };
 
-  // Actualizar cliente
-  const updateCliente = async () => {
+  // Actualizar empleado
+  const updateEmpleado = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
           nombre: formData.nombre,
-          telefono: formData.telefono,
-          direccion: formData.direccion
+          fechanac: formData.fechanac,
+          direccion: formData.direccion,
+          telefono: formData.telefono
         })
       });
       
       if (res.ok) {
-        setSuccess('Cliente actualizado exitosamente');
+        setSuccess('Empleado actualizado exitosamente');
         setShowEditModal(false);
         resetForm();
         refreshData();
       } else {
         const errorData = await res.json();
-        throw new Error(errorData.error || 'Error al actualizar cliente');
+        throw new Error(errorData.error || 'Error al actualizar empleado');
       }
     } catch (error) {
-      console.error("Error al actualizar cliente:", error);
+      console.error("Error al actualizar empleado:", error);
       setError(error.message);
     }
   };
 
-  // Eliminar cliente
-  const deleteCliente = async () => {
+  // Eliminar empleado
+  const deleteEmpleado = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
         method: "DELETE",
         credentials: "include",
       });
       
       if (res.ok) {
-        setSuccess('Cliente eliminado exitosamente');
+        setSuccess('Empleado eliminado exitosamente');
         setShowDeleteModal(false);
         refreshData();
       } else {
         const errorData = await res.json();
-        throw new Error(errorData.error || 'Error al eliminar cliente');
+        throw new Error(errorData.error || 'Error al eliminar empleado');
       }
     } catch (error) {
-      console.error("Error al eliminar cliente:", error);
+      console.error("Error al eliminar empleado:", error);
       setError(error.message);
     }
   };
@@ -219,10 +221,11 @@ function Clientes() {
     setFormData({
       ci: '',
       nombre: '',
-      telefono: '',
-      direccion: ''
+      fechanac: '',
+      direccion: '',
+      telefono: ''
     });
-    setSelectedCliente(null);
+    setSelectedEmpleado(null);
   };
 
   const handleInputChange = (e) => {
@@ -232,24 +235,25 @@ function Clientes() {
     });
   };
 
-  const openEditModal = (cliente) => {
-    setSelectedCliente(cliente);
+  const openEditModal = (empleado) => {
+    setSelectedEmpleado(empleado);
     setFormData({
-      ci: cliente.ci,
-      nombre: cliente.nombre,
-      telefono: cliente.telefono,
-      direccion: cliente.direccion
+      ci: empleado.ci,
+      nombre: empleado.nombre,
+      fechanac: empleado.fechanac.split('T')[0], // Formato YYYY-MM-DD para input date
+      direccion: empleado.direccion,
+      telefono: empleado.telefono
     });
     setShowEditModal(true);
   };
 
-  const openViewModal = (cliente) => {
-    setSelectedCliente(cliente);
+  const openViewModal = (empleado) => {
+    setSelectedEmpleado(empleado);
     setShowViewModal(true);
   };
 
-  const openDeleteModal = (cliente) => {
-    setSelectedCliente(cliente);
+  const openDeleteModal = (empleado) => {
+    setSelectedEmpleado(empleado);
     setShowDeleteModal(true);
   };
 
@@ -257,9 +261,9 @@ function Clientes() {
   const handlePageChange = (event, newPage) => {
     setPage(newPage);
     if (isSearching) {
-      searchClientes(newPage);
+      searchEmpleados(newPage);
     } else {
-      fetchClientes(newPage, rowsPerPage);
+      fetchEmpleados(newPage, rowsPerPage);
     }
   };
 
@@ -269,9 +273,9 @@ function Clientes() {
     setRowsPerPage(newRowsPerPage);
     setPage(1);
     if (isSearching) {
-      searchClientes(1);
+      searchEmpleados(1);
     } else {
-      fetchClientes(1, newRowsPerPage);
+      fetchEmpleados(1, newRowsPerPage);
     }
   };
 
@@ -280,34 +284,52 @@ function Clientes() {
     setSearchTerm('');
     setIsSearching(false);
     setPage(1);
-    fetchClientes(1, rowsPerPage);
+    fetchEmpleados(1, rowsPerPage);
   };
 
   useEffect(() => {
-    fetchClientes();
+    fetchEmpleados();
   }, []);
 
   // Refrescar datos después de operaciones CRUD
   const refreshData = () => {
     if (isSearching) {
-      searchClientes(page);
+      searchEmpleados(page);
     } else {
-      fetchClientes(page, rowsPerPage);
+      fetchEmpleados(page, rowsPerPage);
     }
   };
-   
+
+  // Formatear fecha para mostrar
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES');
+  };
+
+  // Calcular edad
+  const calculateAge = (birthDate) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   return (
     <Box>
       {/* Header */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h5">Gestión de Clientes</Typography>
+        <Typography variant="h5">Gestión de Empleados</Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
           sx={{ backgroundColor: "#ff8c42" }}
           onClick={() => setShowCreateModal(true)}
         >
-          Nuevo Cliente
+          Nuevo Empleado
         </Button>
       </Box>
 
@@ -316,10 +338,10 @@ function Clientes() {
         <Grid item xs={12} md={8}>
           <TextField
             fullWidth
-            placeholder="Buscar cliente por CI, nombre, teléfono o dirección..."
+            placeholder="Buscar empleado por CI, nombre, teléfono o dirección..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && searchClientes()}
+            onKeyPress={(e) => e.key === 'Enter' && searchEmpleados()}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -331,7 +353,7 @@ function Clientes() {
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => searchClientes(1)}
+                    onClick={() => searchEmpleados(1)}
                     sx={{ backgroundColor: "#ff8c42", mr: 1 }}
                   >
                     Buscar
@@ -371,9 +393,9 @@ function Clientes() {
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body2" color="text.secondary">
           {isSearching ? (
-            `Mostrando ${clientes.length} de ${totalClientes} resultados para "${searchTerm}"`
+            `Mostrando ${empleados.length} de ${totalEmpleados} resultados para "${searchTerm}"`
           ) : (
-            `Mostrando ${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, totalClientes)} de ${totalClientes} clientes`
+            `Mostrando ${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, totalEmpleados)} de ${totalEmpleados} empleados`
           )}
         </Typography>
         {totalPages > 1 && (
@@ -387,7 +409,7 @@ function Clientes() {
         )}
       </Box>
 
-      {/* Tabla de clientes */}
+      {/* Tabla de empleados */}
       <Paper sx={{ width: "100%", overflow: "hidden" }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
@@ -396,34 +418,50 @@ function Clientes() {
         ) : (
           <TableContainer>
             <Table>
-                            <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableRow>
                   <TableCell>CI</TableCell>
                   <TableCell>Nombre</TableCell>
+                  <TableCell>Edad</TableCell>
                   <TableCell>Teléfono</TableCell>
-                  <TableCell>Dirección</TableCell>
+                  <TableCell>Usuario Sistema</TableCell>
                   <TableCell>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {clientes.length === 0 ? (
+                {empleados.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} align="center">
-                      No se encontraron clientes
+                      No se encontraron empleados
                     </TableCell>
                   </TableRow>
                 ) : (
-                  clientes.map((cliente) => (
-                    <TableRow key={cliente.ci} hover>
-                      <TableCell>{cliente.ci}</TableCell>
-                      <TableCell>{cliente.nombre}</TableCell>
-                      <TableCell>{cliente.telefono}</TableCell>
-                      <TableCell>{cliente.direccion}</TableCell>
+                  empleados.map((empleado) => (
+                    <TableRow key={empleado.ci} hover>
+                      <TableCell>{empleado.ci}</TableCell>
+                      <TableCell>{empleado.nombre}</TableCell>
+                      <TableCell>{calculateAge(empleado.fechanac)} años</TableCell>
+                      <TableCell>{empleado.telefono}</TableCell>
+                      <TableCell>
+                        {empleado.usuario ? (
+                          <Chip 
+                            label={empleado.usuario.usuario} 
+                            color="success" 
+                            size="small" 
+                          />
+                        ) : (
+                          <Chip 
+                            label="Sin usuario" 
+                            color="default" 
+                            size="small" 
+                          />
+                        )}
+                      </TableCell>
                       <TableCell>
                         <IconButton 
                           color="info" 
                           size="small"
-                          onClick={() => openViewModal(cliente)}
+                          onClick={() => openViewModal(empleado)}
                           title="Ver detalles"
                         >
                           <Visibility />
@@ -431,7 +469,7 @@ function Clientes() {
                         <IconButton 
                           color="primary" 
                           size="small"
-                          onClick={() => openEditModal(cliente)}
+                          onClick={() => openEditModal(empleado)}
                           title="Editar"
                         >
                           <Edit />
@@ -439,7 +477,7 @@ function Clientes() {
                         <IconButton 
                           color="error" 
                           size="small"
-                          onClick={() => openDeleteModal(cliente)}
+                          onClick={() => openDeleteModal(empleado)}
                           title="Eliminar"
                         >
                           <Delete />
@@ -468,14 +506,14 @@ function Clientes() {
         )}
       </Paper>
 
-      {/* Modal Crear Cliente */}
+      {/* Modal Crear Empleado */}
       <Dialog 
         open={showCreateModal} 
         onClose={() => setShowCreateModal(false)}
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>Nuevo Cliente</DialogTitle>
+        <DialogTitle>Nuevo Empleado</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
@@ -496,8 +534,21 @@ function Clientes() {
               required
             />
             <TextField
+              name="fechanac"
+              label="Fecha de Nacimiento"
+              type="date"
+              value={formData.fechanac}
+              onChange={handleInputChange}
+              fullWidth
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
               name="telefono"
               label="Teléfono"
+              type="number"
               value={formData.telefono}
               onChange={handleInputChange}
               fullWidth
@@ -520,23 +571,23 @@ function Clientes() {
             Cancelar
           </Button>
           <Button 
-            onClick={createCliente}
+            onClick={createEmpleado}
             variant="contained"
             sx={{ backgroundColor: "#ff8c42" }}
           >
-            Crear Cliente
+            Crear Empleado
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Modal Editar Cliente */}
+      {/* Modal Editar Empleado */}
       <Dialog 
         open={showEditModal} 
         onClose={() => setShowEditModal(false)}
         maxWidth="sm" 
         fullWidth
       >
-        <DialogTitle>Editar Cliente</DialogTitle>
+        <DialogTitle>Editar Empleado</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
             <TextField
@@ -555,8 +606,21 @@ function Clientes() {
               required
             />
             <TextField
+              name="fechanac"
+              label="Fecha de Nacimiento"
+              type="date"
+              value={formData.fechanac}
+              onChange={handleInputChange}
+              fullWidth
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
               name="telefono"
               label="Teléfono"
+              type="number"
               value={formData.telefono}
               onChange={handleInputChange}
               fullWidth
@@ -579,7 +643,7 @@ function Clientes() {
             Cancelar
           </Button>
           <Button 
-            onClick={updateCliente}
+            onClick={updateEmpleado}
             variant="contained"
             sx={{ backgroundColor: "#ff8c42" }}
           >
@@ -588,43 +652,77 @@ function Clientes() {
         </DialogActions>
       </Dialog>
 
-      {/* Modal Ver Cliente */}
+      {/* Modal Ver Empleado */}
       <Dialog 
         open={showViewModal} 
         onClose={() => setShowViewModal(false)}
-        maxWidth="sm" 
+        maxWidth="md" 
         fullWidth
       >
-        <DialogTitle>Detalles del Cliente</DialogTitle>
+        <DialogTitle>Detalles del Empleado</DialogTitle>
         <DialogContent>
-          {selectedCliente && (
+          {selectedEmpleado && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <TextField
-                label="Cédula de Identidad"
-                value={selectedCliente.ci}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Nombre Completo"
-                value={selectedCliente.nombre}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Teléfono"
-                value={selectedCliente.telefono}
-                fullWidth
-                disabled
-              />
-              <TextField
-                label="Dirección"
-                value={selectedCliente.direccion}
-                fullWidth
-                multiline
-                rows={2}
-                disabled
-              />
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Cédula de Identidad"
+                    value={selectedEmpleado.ci}
+                    fullWidth
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Nombre Completo"
+                    value={selectedEmpleado.nombre}
+                    fullWidth
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Fecha de Nacimiento"
+                    value={formatDate(selectedEmpleado.fechanac)}
+                    fullWidth
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Edad"
+                    value={`${calculateAge(selectedEmpleado.fechanac)} años`}
+                    fullWidth
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Teléfono"
+                    value={selectedEmpleado.telefono}
+                    fullWidth
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={6}>
+                  <TextField
+                    label="Usuario del Sistema"
+                    value={selectedEmpleado.usuario?.usuario || 'Sin usuario asignado'}
+                    fullWidth
+                    disabled
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    label="Dirección"
+                    value={selectedEmpleado.direccion}
+                    fullWidth
+                    multiline
+                    rows={2}
+                    disabled
+                  />
+                </Grid>
+              </Grid>
             </Box>
           )}
         </DialogContent>
@@ -635,7 +733,7 @@ function Clientes() {
         </DialogActions>
       </Dialog>
 
-      {/* Modal Eliminar Cliente */}
+      {/* Modal Eliminar Empleado */}
       <Dialog 
         open={showDeleteModal} 
         onClose={() => setShowDeleteModal(false)}
@@ -645,11 +743,12 @@ function Clientes() {
         <DialogTitle>Confirmar Eliminación</DialogTitle>
         <DialogContent>
           <Typography>
-            ¿Está seguro que desea eliminar al cliente{' '}
-            <strong>{selectedCliente?.nombre}</strong> (CI: {selectedCliente?.ci})?
+            ¿Está seguro que desea eliminar al empleado{' '}
+            <strong>{selectedEmpleado?.nombre}</strong> (CI: {selectedEmpleado?.ci})?
           </Typography>
           <Typography color="error" sx={{ mt: 2 }}>
-            Esta acción no se puede deshacer.
+            Esta acción no se puede deshacer. El empleado no se puede eliminar si tiene 
+            diagnósticos, órdenes de trabajo o un usuario del sistema asociado.
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -657,7 +756,7 @@ function Clientes() {
             Cancelar
           </Button>
           <Button 
-            onClick={deleteCliente}
+            onClick={deleteEmpleado}
             variant="contained"
             color="error"
           >
@@ -698,4 +797,4 @@ function Clientes() {
   );
 }
 
-export default Clientes;
+export default Empleados;
