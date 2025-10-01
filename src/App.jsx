@@ -249,6 +249,58 @@ function App() {
     empleado_ci: null
   })
 
+  // Detectar si estamos en producción (Vercel) o desarrollo (localhost)
+  const isProduction = window.location.hostname !== 'localhost'
+  console.log('Entorno detectado:', isProduction ? 'Producción (Vercel)' : 'Desarrollo (localhost)')
+
+  // Función para guardar sesión en localStorage como respaldo
+  const guardarSesionLocal = (userData) => {
+    try {
+      const sessionData = {
+        ...userData,
+        timestamp: Date.now(),
+        expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 horas
+      };
+      localStorage.setItem('userSession', JSON.stringify(sessionData));
+      console.log('Sesión guardada en localStorage');
+    } catch (error) {
+      console.warn('Error al guardar sesión local:', error);
+    }
+  };
+
+  // Función para leer sesión desde localStorage
+  const leerSesionLocal = () => {
+    try {
+      const sessionData = localStorage.getItem('userSession');
+      if (!sessionData) return null;
+      
+      const parsedData = JSON.parse(sessionData);
+      
+      // Verificar si la sesión ha expirado
+      if (Date.now() > parsedData.expiresAt) {
+        localStorage.removeItem('userSession');
+        console.log('Sesión local expirada, removida');
+        return null;
+      }
+      
+      return parsedData;
+    } catch (error) {
+      console.warn('Error al leer sesión local:', error);
+      localStorage.removeItem('userSession');
+      return null;
+    }
+  };
+
+  // Función para limpiar sesión local
+  const limpiarSesionLocal = () => {
+    try {
+      localStorage.removeItem('userSession');
+      console.log('Sesión local limpiada');
+    } catch (error) {
+      console.warn('Error al limpiar sesión local:', error);
+    }
+  };
+
   // Función helper para verificar conectividad básica con reintentos
   const verificarConectividad = async () => {
     // Primer intento rápido
@@ -279,12 +331,33 @@ function App() {
       try {
         console.log('Iniciando verificación de sesión...');
         
-        // Verificar conectividad primero
-        console.log('Verificando conectividad con el servidor...');
+        // En producción (Vercel), priorizar cookies del servidor
+        // En desarrollo (localhost), usar localStorage como principal
+        if (!isProduction) {
+          // Solo en desarrollo: verificar localStorage primero
+          const sesionLocal = leerSesionLocal();
+          if (sesionLocal) {
+            console.log('Sesión encontrada en localStorage (desarrollo):', sesionLocal.usuario);
+            setIsLoggedIn(true);
+            setUsuario(sesionLocal.usuario);
+            setUserInfo({
+              usuario: sesionLocal.usuario,
+              email: sesionLocal.email,
+              isAdmin: sesionLocal.isAdmin,
+              empleado_ci: sesionLocal.empleado_ci
+            });
+            setIsLoading(false);
+            return; // Usar sesión local sin verificar servidor
+          }
+        }
+        
+        // Si no hay sesión local, verificar conectividad con servidor
+        console.log('No hay sesión local, verificando con servidor...');
         const tieneConexion = await verificarConectividad();
         if (!tieneConexion) {
-          console.log('Servidor no disponible - probablemente durmiendo. Intentando verificar sesión de todos modos...');
-          // NO salir, continuar con la verificación porque podría haber una sesión válida
+          console.log('Servidor no disponible - continuando sin sesión');
+          setIsLoading(false);
+          return;
         } else {
           console.log('Servidor disponible, procediendo con verificación de sesión');
         }
@@ -292,9 +365,10 @@ function App() {
         // Las cookies httpOnly no son accesibles desde JavaScript
         // Siempre intentar verificar con el servidor
         
-        // Crear un timeout para la verificación (muy generoso para servidores dormidos)
+        // Crear un timeout para la verificación (ajustado según entorno)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos para servidores dormidos
+        const timeoutMs = isProduction ? 15000 : 30000; // 15s en producción, 30s en desarrollo
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
           method: "GET",
@@ -314,7 +388,9 @@ function App() {
             isAdmin: data.isAdmin,
             empleado_ci: data.empleado_ci
           });
-          console.log('Sesión restaurada exitosamente:', data.usuario, 'Admin:', data.isAdmin);
+          // Guardar sesión en localStorage (siempre como respaldo, pero especialmente importante en desarrollo)
+          guardarSesionLocal(data);
+          console.log(`Sesión restaurada exitosamente en ${isProduction ? 'producción' : 'desarrollo'}:`, data.usuario, 'Admin:', data.isAdmin);
         } else {
           console.log('No hay sesión activa, código:', res.status);
           // Asegurar que el estado esté limpio
@@ -353,13 +429,14 @@ function App() {
 
     verificarSesion();
 
-    // Timeout de seguridad: asegurar que el loading desaparezca después de 35 segundos máximo
+    // Timeout de seguridad: ajustado según entorno
+    const safetyTimeoutMs = isProduction ? 20000 : 35000; // 20s en producción, 35s en desarrollo
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {
-        console.log('Timeout de seguridad: el servidor tardó demasiado en responder');
+        console.log(`Timeout de seguridad (${isProduction ? 'producción' : 'desarrollo'}): el servidor tardó demasiado en responder`);
         setIsLoading(false);
       }
-    }, 35000);
+    }, safetyTimeoutMs);
 
     return () => clearTimeout(safetyTimeout);
   }, []);
@@ -381,6 +458,8 @@ function App() {
         isAdmin: false,
         empleado_ci: null
       });
+      // Limpiar sesión local
+      limpiarSesionLocal();
       console.log('Sesión cerrada exitosamente');
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
@@ -394,6 +473,8 @@ function App() {
         isAdmin: false,
         empleado_ci: null
       });
+      // Limpiar sesión local
+      limpiarSesionLocal();
     }
   };
 
@@ -421,6 +502,8 @@ function App() {
         isAdmin: data.isAdmin,
         empleado_ci: data.empleado_ci
       });
+      // Guardar sesión en localStorage
+      guardarSesionLocal(data);
       console.log('Login exitoso', 'Admin:', data.isAdmin)
     } else {
       setError('Usuario o contraseña incorrectos')
@@ -451,7 +534,10 @@ function App() {
           Verificando sesión...
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
-          Si es la primera vez que accedes hoy, el servidor puede tardar unos segundos en responder
+          {window.location.hostname !== 'localhost' 
+            ? 'Verificando sesión en producción...' 
+            : 'Si es la primera vez que accedes hoy, el servidor puede tardar unos segundos en responder'
+          }
         </Typography>
         <style jsx>{`
           @keyframes spin {
