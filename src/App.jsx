@@ -258,9 +258,9 @@ function App() {
         // Las cookies httpOnly no son accesibles desde JavaScript
         // Siempre intentar verificar con el servidor
         
-        // Crear un timeout para la verificación (más agresivo)
+        // Crear un timeout para la verificación (menos agresivo)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
         
         const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
           method: "GET",
@@ -295,10 +295,21 @@ function App() {
         }
       } catch (error) {
         if (error.name === 'AbortError') {
-          console.log('Timeout en verificación de sesión');
+          console.log('Timeout en verificación de sesión - esto es normal si no hay conexión');
+        } else if (error.message.includes('ERR_INTERNET_DISCONNECTED') || error.message.includes('Failed to fetch')) {
+          console.log('Sin conexión a internet o servidor no disponible - continuando sin sesión');
         } else {
-          console.error('Error al verificar sesión:', error);
+          console.warn('Error al verificar sesión (continuando normalmente):', error.message);
         }
+        // Asegurar que el estado esté limpio en caso de error
+        setIsLoggedIn(false);
+        setUsuario('');
+        setUserInfo({
+          usuario: '',
+          email: '',
+          isAdmin: false,
+          empleado_ci: null
+        });
       } finally {
         console.log('Finalizando verificación de sesión');
         setIsLoading(false);
@@ -307,13 +318,13 @@ function App() {
 
     verificarSesion();
 
-    // Timeout de seguridad: asegurar que el loading desaparezca después de 3 segundos máximo
+    // Timeout de seguridad: asegurar que el loading desaparezca después de 6 segundos máximo
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {
         console.log('Timeout de seguridad activado, ocultando loading');
         setIsLoading(false);
       }
-    }, 3000);
+    }, 6000);
 
     return () => clearTimeout(safetyTimeout);
   }, []);
