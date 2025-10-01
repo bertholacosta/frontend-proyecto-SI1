@@ -44,6 +44,47 @@ import Configuracion from './main/configuracion'
 
 import './App.css'
 
+// Función helper para leer sesión desde localStorage (global)
+const leerSesionLocal = () => {
+  try {
+    const sessionData = localStorage.getItem('userSession');
+    if (!sessionData) return null;
+    
+    const parsedData = JSON.parse(sessionData);
+    
+    // Verificar si la sesión ha expirado
+    if (Date.now() > parsedData.expiresAt) {
+      localStorage.removeItem('userSession');
+      return null;
+    }
+    
+    return parsedData;
+  } catch (error) {
+    localStorage.removeItem('userSession');
+    return null;
+  }
+};
+
+// Función helper para hacer peticiones autenticadas (global)
+export const fetchWithAuth = async (url, options = {}) => {
+  const sesionLocal = leerSesionLocal();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+
+  // Usar token JWT para autenticación (funciona entre dominios)
+  if (sesionLocal && sesionLocal.token) {
+    headers['Authorization'] = `Bearer ${sesionLocal.token}`;
+  }
+
+  return fetch(url, {
+    ...options,
+    headers
+    // Sin credentials: 'include' para evitar problemas CORS cross-domain
+  });
+};
+
 // Tema personalizado con colores naranja y negro
 const theme = createTheme({
   palette: {
@@ -268,27 +309,21 @@ function App() {
     }
   };
 
-  // Función para leer sesión desde localStorage
-  const leerSesionLocal = () => {
-    try {
-      const sessionData = localStorage.getItem('userSession');
-      if (!sessionData) return null;
-      
-      const parsedData = JSON.parse(sessionData);
-      
-      // Verificar si la sesión ha expirado
-      if (Date.now() > parsedData.expiresAt) {
-        localStorage.removeItem('userSession');
-        console.log('Sesión local expirada, removida');
-        return null;
-      }
-      
-      return parsedData;
-    } catch (error) {
-      console.warn('Error al leer sesión local:', error);
-      localStorage.removeItem('userSession');
-      return null;
+  // Usar función global de lectura con logs detallados
+  const leerSesionLocalConLogs = () => {
+    const sesion = leerSesionLocal();
+    if (sesion) {
+      console.log('Sesión leída de localStorage:', {
+        usuario: sesion.usuario,
+        hasToken: !!sesion.token,
+        created: new Date(sesion.timestamp).toLocaleString(),
+        expires: new Date(sesion.expiresAt).toLocaleString(),
+        isExpired: Date.now() > sesion.expiresAt
+      });
+    } else {
+      console.log('No hay datos de sesión en localStorage');
     }
+    return sesion;
   };
 
   // Función para limpiar sesión local
@@ -301,25 +336,7 @@ function App() {
     }
   };
 
-  // Función helper para hacer peticiones autenticadas
-  const fetchWithAuth = async (url, options = {}) => {
-    const sesionLocal = leerSesionLocal();
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
-
-    // Usar token JWT para autenticación (funciona entre dominios)
-    if (sesionLocal && sesionLocal.token) {
-      headers['Authorization'] = `Bearer ${sesionLocal.token}`;
-    }
-
-    return fetch(url, {
-      ...options,
-      headers
-      // Sin credentials: 'include' para evitar problemas CORS cross-domain
-    });
-  };
+  // fetchWithAuth ya está definida globalmente
 
   // Función helper para verificar conectividad básica con reintentos
   const verificarConectividad = async () => {
@@ -350,13 +367,21 @@ function App() {
       try {
         console.log('Iniciando verificación de sesión...');
         
-        // En producción (Vercel), priorizar cookies del servidor
-        // En desarrollo (localhost), usar localStorage como principal
-        if (!isProduction) {
-          // Solo en desarrollo: verificar localStorage primero
-          const sesionLocal = leerSesionLocal();
-          if (sesionLocal) {
-            console.log('Sesión encontrada en localStorage (desarrollo):', sesionLocal.usuario);
+        // Verificar si hay una sesión guardada localmente
+        const sesionLocal = leerSesionLocalConLogs();
+        console.log('Estado de sesión local:', sesionLocal ? 'Encontrada' : 'No encontrada');
+        
+        if (sesionLocal) {
+          console.log('Datos de sesión local:', {
+            usuario: sesionLocal.usuario,
+            hasToken: !!sesionLocal.token,
+            expiresAt: new Date(sesionLocal.expiresAt).toLocaleString(),
+            timeLeft: Math.round((sesionLocal.expiresAt - Date.now()) / (1000 * 60)) + ' minutos'
+          });
+          
+          // En desarrollo, usar localStorage directamente sin verificar servidor
+          if (!isProduction) {
+            console.log('Desarrollo: Usando sesión local directamente');
             setIsLoggedIn(true);
             setUsuario(sesionLocal.usuario);
             setUserInfo({
@@ -366,7 +391,7 @@ function App() {
               empleado_ci: sesionLocal.empleado_ci
             });
             setIsLoading(false);
-            return; // Usar sesión local sin verificar servidor
+            return;
           }
         }
         
@@ -390,12 +415,12 @@ function App() {
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
         // Intentar verificar con cookies primero, luego con token si hay uno guardado
-        const sesionLocal = leerSesionLocal();
+        const sesionLocalVerificacion = leerSesionLocal();
         const headers = { "Content-Type": "application/json" };
         
         // Si hay un token guardado, usarlo en la cabecera Authorization
-        if (sesionLocal && sesionLocal.token) {
-          headers['Authorization'] = `Bearer ${sesionLocal.token}`;
+        if (sesionLocalVerificacion && sesionLocalVerificacion.token) {
+          headers['Authorization'] = `Bearer ${sesionLocalVerificacion.token}`;
         }
         
         const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
@@ -406,8 +431,12 @@ function App() {
         
         clearTimeout(timeoutId);
         
+        console.log('Respuesta del servidor:', res.status, res.statusText);
+        
         if (res.ok) {
           const data = await res.json();
+          console.log('Datos recibidos del servidor:', data);
+          
           setIsLoggedIn(true);
           setUsuario(data.usuario);
           setUserInfo({
@@ -416,13 +445,27 @@ function App() {
             isAdmin: data.isAdmin,
             empleado_ci: data.empleado_ci
           });
-          // Guardar sesión en localStorage (siempre como respaldo, pero especialmente importante en desarrollo)
-          guardarSesionLocal(data);
+          
+          // Asegurar que guardamos toda la información (incluyendo token si existe)
+          const sessionDataToSave = {
+            ...data,
+            token: data.token || (sesionLocalVerificacion ? sesionLocalVerificacion.token : null)
+          };
+          guardarSesionLocal(sessionDataToSave);
+          
           console.log(`Sesión restaurada exitosamente en ${isProduction ? 'producción' : 'desarrollo'}:`, data.usuario, 'Admin:', data.isAdmin);
-          console.log('Método de autenticación:', sesionLocal && sesionLocal.token ? 'Token JWT' : 'Cookies del servidor');
+          console.log('Método de autenticación usado:', sesionLocalVerificacion && sesionLocalVerificacion.token ? 'Token JWT' : 'Servidor directo');
+          console.log('Token guardado:', !!sessionDataToSave.token);
         } else {
-          console.log('No hay sesión activa, código:', res.status);
-          // Asegurar que el estado esté limpio
+          console.log('Servidor rechazó la verificación:', res.status, res.statusText);
+          
+          // Si había una sesión local pero el servidor la rechaza, limpiarla
+          if (sesionLocalVerificacion) {
+            console.log('Limpiando sesión local inválida');
+            limpiarSesionLocal();
+          }
+          
+          // Limpiar estado
           setIsLoggedIn(false);
           setUsuario('');
           setUserInfo({
@@ -433,23 +476,42 @@ function App() {
           });
         }
       } catch (error) {
-        // Manejo completamente silencioso de errores de conectividad
+        console.log('Error en verificación de sesión:', error.name, error.message);
+        
         if (error.name === 'AbortError') {
-          console.log('Verificación de sesión: timeout (normal)');
+          console.log('Verificación de sesión: timeout');
+          
+          // Si hay timeout pero tenemos sesión local válida, usarla
+          const sesionLocalTimeout = leerSesionLocal();
+          if (sesionLocalTimeout) {
+            console.log('Usando sesión local debido a timeout del servidor');
+            setIsLoggedIn(true);
+            setUsuario(sesionLocalTimeout.usuario);
+            setUserInfo({
+              usuario: sesionLocalTimeout.usuario,
+              email: sesionLocalTimeout.email,
+              isAdmin: sesionLocalTimeout.isAdmin,
+              empleado_ci: sesionLocalTimeout.empleado_ci
+            });
+            setIsLoading(false);
+            return;
+          }
         } else {
-          // No mostrar errores de conexión, solo log interno
-          console.log('Verificación de sesión: sin conexión o servidor no disponible');
+          console.log('Error de conexión en verificación de sesión');
         }
         
-        // Limpiar estado silenciosamente
-        setIsLoggedIn(false);
-        setUsuario('');
-        setUserInfo({
-          usuario: '',
-          email: '',
-          isAdmin: false,
-          empleado_ci: null
-        });
+        // Solo limpiar si no hay sesión local válida
+        const sesionLocalFinal = leerSesionLocal();
+        if (!sesionLocalFinal) {
+          setIsLoggedIn(false);
+          setUsuario('');
+          setUserInfo({
+            usuario: '',
+            email: '',
+            isAdmin: false,
+            empleado_ci: null
+          });
+        }
       } finally {
         console.log('Verificación de sesión completada');
         setIsLoading(false);
