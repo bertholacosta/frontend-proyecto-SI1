@@ -42,6 +42,7 @@ import {
   ArrowDownward
 } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import { fetchAuth } from '../utils/fetchAuth';
 
 function Usuarios() {
   // Estados
@@ -96,9 +97,9 @@ function Usuarios() {
         sortOrder
       });
 
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios?${params}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios?${params}`, {
         method: "GET",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -121,9 +122,9 @@ function Usuarios() {
   // Cargar empleados disponibles (sin usuario asignado)
   const fetchEmpleadosDisponibles = async () => {
     try {
-      const res = await fetch("https://api-renacer.onrender.com/empleados", {
+      const res = await fetchAuth("https://api-renacer.onrender.com/empleados", {
         method: "GET",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -157,9 +158,9 @@ function Usuarios() {
         sortOrder
       });
 
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios/search?${params}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios/search?${params}`, {
         method: "GET",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -182,10 +183,10 @@ function Usuarios() {
   // Crear usuario
   const createUsuario = async () => {
     try {
-      const res = await fetch("https://api-renacer.onrender.com/usuarios", {
+      const res = await fetchAuth("https://api-renacer.onrender.com/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        
         body: JSON.stringify(formData)
       });
       
@@ -209,10 +210,10 @@ function Usuarios() {
   // Actualizar usuario
   const updateUsuario = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        
         body: JSON.stringify({
           usuario: formData.usuario,
           email: formData.email
@@ -237,9 +238,9 @@ function Usuarios() {
   // Eliminar usuario
   const deleteUsuario = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}`, {
         method: "DELETE",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -265,10 +266,10 @@ function Usuarios() {
         return;
       }
 
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/cambiar-contrasena`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/cambiar-contrasena`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        
         body: JSON.stringify({
           contrasenaActual: passwordData.contrasenaActual,
           contrasenaNueva: passwordData.contrasenaNueva
@@ -292,9 +293,9 @@ function Usuarios() {
   // Promover usuario a administrador
   const promoverAdministrador = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/promover-admin`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/promover-admin`, {
         method: "PUT",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -314,9 +315,9 @@ function Usuarios() {
   // Degradar administrador a usuario normal
   const degradarAdministrador = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/degradar-admin`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/degradar-admin`, {
         method: "PUT",
-        credentials: "include",
+        
       });
       
       if (res.ok) {

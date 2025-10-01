@@ -29,6 +29,7 @@ import {
 } from "@mui/material";
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import { fetchAuth } from '../utils/fetchAuth';
 
 function Empleados() {
   // Estados
@@ -74,9 +75,9 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetch(`https://api-renacer.onrender.com/empleados?${params}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/empleados?${params}`, {
         method: "GET",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -116,9 +117,9 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetch(`https://api-renacer.onrender.comempleados/search?${params}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.comempleados/search?${params}`, {
         method: "GET",
-        credentials: "include",
+        
       });
       
       if (res.ok) {
@@ -141,10 +142,10 @@ function Empleados() {
   // Crear empleado
   const createEmpleado = async () => {
     try {
-      const res = await fetch("https://api-renacer.onrender.com/empleados", {
+      const res = await fetchAuth("https://api-renacer.onrender.com/empleados", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        
         body: JSON.stringify(formData)
       });
       
@@ -167,10 +168,10 @@ function Empleados() {
   // Actualizar empleado
   const updateEmpleado = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/empleados/${selectedEmpleado.ci}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/empleados/${selectedEmpleado.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        
         body: JSON.stringify({
           nombre: formData.nombre,
           fechanac: formData.fechanac,
@@ -197,9 +198,9 @@ function Empleados() {
   // Eliminar empleado
   const deleteEmpleado = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/empleados/${selectedEmpleado.ci}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/empleados/${selectedEmpleado.ci}`, {
         method: "DELETE",
-        credentials: "include",
+        
       });
       
       if (res.ok) {

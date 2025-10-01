@@ -29,6 +29,7 @@ import {
 } from "@mui/material";
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState } from "react";
+import { fetchAuth } from '../utils/fetchAuth';
 
 function Clientes() {
   // Estados
@@ -73,9 +74,8 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`https://api-renacer.onrender.com/clientes?${params}`, {
-        method: "GET",
-        credentials: "include",
+      const res = await fetchAuth(`https://api-renacer.onrender.com/clientes?${params}`, {
+        method: "GET"
       });
       
       if (res.ok) {
@@ -115,9 +115,8 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`https://api-renacer.onrender.com/clientes/search?${params}`, {
-        method: "GET",
-        credentials: "include",
+      const res = await fetchAuth(`https://api-renacer.onrender.com/clientes/search?${params}`, {
+        method: "GET"
       });
       
       if (res.ok) {
@@ -140,10 +139,8 @@ function Clientes() {
   // Crear cliente
   const createCliente = async () => {
     try {
-      const res = await fetch("https://api-renacer.onrender.com/clientes", {
+      const res = await fetchAuth("https://api-renacer.onrender.com/clientes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(formData)
       });
       
@@ -166,10 +163,8 @@ function Clientes() {
   // Actualizar cliente
   const updateCliente = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/clientes/${selectedCliente.ci}`, {
+      const res = await fetchAuth(`https://api-renacer.onrender.com/clientes/${selectedCliente.ci}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           nombre: formData.nombre,
           telefono: formData.telefono,
@@ -195,9 +190,8 @@ function Clientes() {
   // Eliminar cliente
   const deleteCliente = async () => {
     try {
-      const res = await fetch(`https://api-renacer.onrender.com/clientes/${selectedCliente.ci}`, {
-        method: "DELETE",
-        credentials: "include",
+      const res = await fetchAuth(`https://api-renacer.onrender.com/clientes/${selectedCliente.ci}`, {
+        method: "DELETE"
       });
       
       if (res.ok) {
