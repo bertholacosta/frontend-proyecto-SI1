@@ -379,9 +379,10 @@ function App() {
             timeLeft: Math.round((sesionLocal.expiresAt - Date.now()) / (1000 * 60)) + ' minutos'
           });
           
-          // En desarrollo, usar localStorage directamente sin verificar servidor
-          if (!isProduction) {
-            console.log('Desarrollo: Usando sesión local directamente');
+          // Si hay una sesión local válida, usarla directamente (tanto desarrollo como producción)
+          // Solo verificar con servidor si no hay token (depende de cookies)
+          if (sesionLocal.token || !isProduction) {
+            console.log(isProduction ? 'Producción: Usando sesión local con token' : 'Desarrollo: Usando sesión local directamente');
             setIsLoggedIn(true);
             setUsuario(sesionLocal.usuario);
             setUserInfo({
@@ -393,6 +394,8 @@ function App() {
             setIsLoading(false);
             return;
           }
+          
+          console.log('Producción: Sesión local sin token, verificando con servidor...');
         }
         
         // Si no hay sesión local, verificar conectividad con servidor
