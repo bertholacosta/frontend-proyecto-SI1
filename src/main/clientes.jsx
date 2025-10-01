@@ -73,7 +73,7 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/clientes?${params}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/clientes?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -115,7 +115,7 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/clientes/search?${params}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/clientes/search?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -140,7 +140,7 @@ function Clientes() {
   // Crear cliente
   const createCliente = async () => {
     try {
-      const res = await fetch("http://localhost:3000/clientes", {
+      const res = await fetch("https://api-renacer.onrender.com/clientes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -166,7 +166,7 @@ function Clientes() {
   // Actualizar cliente
   const updateCliente = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/clientes/${selectedCliente.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -195,7 +195,7 @@ function Clientes() {
   // Eliminar cliente
   const deleteCliente = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/clientes/${selectedCliente.ci}`, {
         method: "DELETE",
         credentials: "include",
       });

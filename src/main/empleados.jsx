@@ -74,7 +74,7 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/empleados?${params}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/empleados?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -116,7 +116,7 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/empleados/search?${params}`, {
+      const res = await fetch(`https://api-renacer.onrender.comempleados/search?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -141,7 +141,7 @@ function Empleados() {
   // Crear empleado
   const createEmpleado = async () => {
     try {
-      const res = await fetch("http://localhost:3000/empleados", {
+      const res = await fetch("https://api-renacer.onrender.com/empleados", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -167,7 +167,7 @@ function Empleados() {
   // Actualizar empleado
   const updateEmpleado = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/empleados/${selectedEmpleado.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -197,7 +197,7 @@ function Empleados() {
   // Eliminar empleado
   const deleteEmpleado = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/empleados/${selectedEmpleado.ci}`, {
         method: "DELETE",
         credentials: "include",
       });

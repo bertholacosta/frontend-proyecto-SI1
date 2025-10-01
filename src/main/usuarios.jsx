@@ -96,7 +96,7 @@ function Usuarios() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/usuarios?${params}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -121,7 +121,7 @@ function Usuarios() {
   // Cargar empleados disponibles (sin usuario asignado)
   const fetchEmpleadosDisponibles = async () => {
     try {
-      const res = await fetch("http://localhost:3000/empleados", {
+      const res = await fetch("https://api-renacer.onrender.com/empleados", {
         method: "GET",
         credentials: "include",
       });
@@ -157,7 +157,7 @@ function Usuarios() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/usuarios/search?${params}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios/search?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -182,7 +182,7 @@ function Usuarios() {
   // Crear usuario
   const createUsuario = async () => {
     try {
-      const res = await fetch("http://localhost:3000/usuarios", {
+      const res = await fetch("https://api-renacer.onrender.com/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -209,7 +209,7 @@ function Usuarios() {
   // Actualizar usuario
   const updateUsuario = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -237,7 +237,7 @@ function Usuarios() {
   // Eliminar usuario
   const deleteUsuario = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -265,7 +265,7 @@ function Usuarios() {
         return;
       }
 
-      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}/cambiar-contrasena`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/cambiar-contrasena`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -292,7 +292,7 @@ function Usuarios() {
   // Promover usuario a administrador
   const promoverAdministrador = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}/promover-admin`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/promover-admin`, {
         method: "PUT",
         credentials: "include",
       });
@@ -314,7 +314,7 @@ function Usuarios() {
   // Degradar administrador a usuario normal
   const degradarAdministrador = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}/degradar-admin`, {
+      const res = await fetch(`https://api-renacer.onrender.com/usuarios/${selectedUsuario.id}/degradar-admin`, {
         method: "PUT",
         credentials: "include",
       });

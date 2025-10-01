@@ -17,7 +17,7 @@ function Dashboard() {
     const fetchStats = async () => {
       try {
         // Obtener total de clientes
-        const clientesRes = await fetch('http://localhost:3000/clientes?page=1&limit=1', {
+        const clientesRes = await fetch('https://api-renacer.onrender.com/clientes?page=1&limit=1', {
           method: 'GET',
           credentials: 'include',
         })

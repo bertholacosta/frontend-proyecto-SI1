@@ -262,7 +262,7 @@ function App() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos timeout
         
-        const res = await fetch("http://localhost:3000/auth/verificar", {
+        const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
           method: "GET",
           credentials: "include", // Importante para enviar cookies
           signal: controller.signal
@@ -321,7 +321,7 @@ function App() {
   // Función para cerrar sesión
   const handleLogout = async () => {
     try{
-      await fetch("http://localhost:3000/auth/logout", {
+      await fetch("https://api-renacer.onrender.com/auth/logout", {
         method: "POST",
         credentials: "include", // MUY IMPORTANTE para cookies
       });
@@ -359,7 +359,7 @@ function App() {
     }
     
     // Validación de credenciales
-    const res = await fetch("http://localhost:3000/auth/login", {
+    const res = await fetch("https://api-renacer.onrender.com/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // MUY IMPORTANTE para cookies
