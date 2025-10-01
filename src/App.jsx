@@ -249,18 +249,52 @@ function App() {
     empleado_ci: null
   })
 
+  // Función helper para verificar conectividad básica con reintentos
+  const verificarConectividad = async () => {
+    // Primer intento rápido
+    try {
+      const response = await fetch('https://api-renacer.onrender.com/health', {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000)
+      });
+      if (response.ok) return true;
+    } catch {}
+    
+    // Si falla, intentar con el endpoint de verificación directamente
+    try {
+      const response = await fetch('https://api-renacer.onrender.com/auth/verificar', {
+        method: 'HEAD',
+        credentials: 'include',
+        signal: AbortSignal.timeout(10000) // Más tiempo para servidores dormidos
+      });
+      return response.status < 500; // Cualquier respuesta que no sea error de servidor
+    } catch {
+      return false;
+    }
+  };
+
   // Verificar sesión al cargar la página
   useEffect(() => {
     const verificarSesion = async () => {
       try {
         console.log('Iniciando verificación de sesión...');
         
+        // Verificar conectividad primero
+        console.log('Verificando conectividad con el servidor...');
+        const tieneConexion = await verificarConectividad();
+        if (!tieneConexion) {
+          console.log('Servidor no disponible - probablemente durmiendo. Intentando verificar sesión de todos modos...');
+          // NO salir, continuar con la verificación porque podría haber una sesión válida
+        } else {
+          console.log('Servidor disponible, procediendo con verificación de sesión');
+        }
+        
         // Las cookies httpOnly no son accesibles desde JavaScript
         // Siempre intentar verificar con el servidor
         
-        // Crear un timeout para la verificación (menos agresivo)
+        // Crear un timeout para la verificación (muy generoso para servidores dormidos)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos para servidores dormidos
         
         const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
           method: "GET",
@@ -294,14 +328,15 @@ function App() {
           });
         }
       } catch (error) {
+        // Manejo completamente silencioso de errores de conectividad
         if (error.name === 'AbortError') {
-          console.log('Timeout en verificación de sesión - esto es normal si no hay conexión');
-        } else if (error.message.includes('ERR_INTERNET_DISCONNECTED') || error.message.includes('Failed to fetch')) {
-          console.log('Sin conexión a internet o servidor no disponible - continuando sin sesión');
+          console.log('Verificación de sesión: timeout (normal)');
         } else {
-          console.warn('Error al verificar sesión (continuando normalmente):', error.message);
+          // No mostrar errores de conexión, solo log interno
+          console.log('Verificación de sesión: sin conexión o servidor no disponible');
         }
-        // Asegurar que el estado esté limpio en caso de error
+        
+        // Limpiar estado silenciosamente
         setIsLoggedIn(false);
         setUsuario('');
         setUserInfo({
@@ -311,20 +346,20 @@ function App() {
           empleado_ci: null
         });
       } finally {
-        console.log('Finalizando verificación de sesión');
+        console.log('Verificación de sesión completada');
         setIsLoading(false);
       }
     };
 
     verificarSesion();
 
-    // Timeout de seguridad: asegurar que el loading desaparezca después de 6 segundos máximo
+    // Timeout de seguridad: asegurar que el loading desaparezca después de 35 segundos máximo
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {
-        console.log('Timeout de seguridad activado, ocultando loading');
+        console.log('Timeout de seguridad: el servidor tardó demasiado en responder');
         setIsLoading(false);
       }
-    }, 6000);
+    }, 35000);
 
     return () => clearTimeout(safetyTimeout);
   }, []);
@@ -412,7 +447,12 @@ function App() {
           animation: 'spin 1s linear infinite',
           mb: 2
         }} />
-        <Typography variant="body1" color="text.secondary">Cargando...</Typography>
+        <Typography variant="body1" color="text.secondary">
+          Verificando sesión...
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
+          Si es la primera vez que accedes hoy, el servidor puede tardar unos segundos en responder
+        </Typography>
         <style jsx>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
