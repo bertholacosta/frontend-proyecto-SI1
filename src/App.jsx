@@ -301,6 +301,26 @@ function App() {
     }
   };
 
+  // Función helper para hacer peticiones autenticadas
+  const fetchWithAuth = async (url, options = {}) => {
+    const sesionLocal = leerSesionLocal();
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+
+    // Si hay token, usarlo; sino, confiar en las cookies
+    if (sesionLocal && sesionLocal.token) {
+      headers['Authorization'] = `Bearer ${sesionLocal.token}`;
+    }
+
+    return fetch(url, {
+      ...options,
+      headers,
+      credentials: 'include' // Para cookies
+    });
+  };
+
   // Función helper para verificar conectividad básica con reintentos
   const verificarConectividad = async () => {
     // Primer intento rápido
@@ -370,9 +390,19 @@ function App() {
         const timeoutMs = isProduction ? 15000 : 30000; // 15s en producción, 30s en desarrollo
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         
+        // Intentar verificar con cookies primero, luego con token si hay uno guardado
+        const sesionLocal = leerSesionLocal();
+        const headers = { "Content-Type": "application/json" };
+        
+        // Si hay un token guardado, usarlo en la cabecera Authorization
+        if (sesionLocal && sesionLocal.token) {
+          headers['Authorization'] = `Bearer ${sesionLocal.token}`;
+        }
+        
         const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
           method: "GET",
-          credentials: "include", // Importante para enviar cookies
+          headers: headers,
+          credentials: "include", // Importante para enviar cookies (si funcionan)
           signal: controller.signal
         });
         
@@ -391,6 +421,7 @@ function App() {
           // Guardar sesión en localStorage (siempre como respaldo, pero especialmente importante en desarrollo)
           guardarSesionLocal(data);
           console.log(`Sesión restaurada exitosamente en ${isProduction ? 'producción' : 'desarrollo'}:`, data.usuario, 'Admin:', data.isAdmin);
+          console.log('Método de autenticación:', sesionLocal && sesionLocal.token ? 'Token JWT' : 'Cookies del servidor');
         } else {
           console.log('No hay sesión activa, código:', res.status);
           // Asegurar que el estado esté limpio
@@ -443,27 +474,26 @@ function App() {
 
   // Función para cerrar sesión
   const handleLogout = async () => {
-    try{
+    try {
+      const sesionLocal = leerSesionLocal();
+      const headers = { "Content-Type": "application/json" };
+      
+      // Si hay un token, incluirlo en la cabecera
+      if (sesionLocal && sesionLocal.token) {
+        headers['Authorization'] = `Bearer ${sesionLocal.token}`;
+      }
+      
       await fetch("https://api-renacer.onrender.com/auth/logout", {
         method: "POST",
-        credentials: "include", // MUY IMPORTANTE para cookies
+        headers: headers,
+        credentials: "include", // Para cookies (si funcionan)
       });
-      // Actualizar el estado local
-      setIsLoggedIn(false);
-      setUsuario('');
-      setPassword('');
-      setUserInfo({
-        usuario: '',
-        email: '',
-        isAdmin: false,
-        empleado_ci: null
-      });
-      // Limpiar sesión local
-      limpiarSesionLocal();
-      console.log('Sesión cerrada exitosamente');
+      
+      console.log('Logout enviado al servidor');
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      // Aún así cerrar sesión localmente
+      console.error("Error al cerrar sesión en servidor:", error);
+    } finally {
+      // SIEMPRE limpiar el estado local, independientemente del servidor
       setIsLoggedIn(false);
       setUsuario('');
       setPassword('');
@@ -473,8 +503,8 @@ function App() {
         isAdmin: false,
         empleado_ci: null
       });
-      // Limpiar sesión local
       limpiarSesionLocal();
+      console.log('Sesión cerrada localmente');
     }
   };
 
@@ -485,28 +515,41 @@ function App() {
       return
     }
     
-    // Validación de credenciales
-    const res = await fetch("https://api-renacer.onrender.com/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // MUY IMPORTANTE para cookies
-      body: JSON.stringify({ usuario, contrasena: password })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setError('')
-      setIsLoggedIn(true)
-      setUserInfo({
-        usuario: data.usuario,
-        email: data.email,
-        isAdmin: data.isAdmin,
-        empleado_ci: data.empleado_ci
+    try {
+      // Validación de credenciales
+      const res = await fetch("https://api-renacer.onrender.com/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // Para cookies (si funcionan)
+        body: JSON.stringify({ usuario, contrasena: password })
       });
-      // Guardar sesión en localStorage
-      guardarSesionLocal(data);
-      console.log('Login exitoso', 'Admin:', data.isAdmin)
-    } else {
-      setError('Usuario o contraseña incorrectos')
+      
+      if (res.ok) {
+        const data = await res.json();
+        setError('')
+        setIsLoggedIn(true)
+        setUserInfo({
+          usuario: data.usuario,
+          email: data.email,
+          isAdmin: data.isAdmin,
+          empleado_ci: data.empleado_ci
+        });
+        
+        // Guardar toda la información incluyendo token si existe
+        const sessionData = {
+          ...data,
+          token: data.token || null // Guardar token si el backend lo envía
+        };
+        guardarSesionLocal(sessionData);
+        
+        console.log('Login exitoso en', isProduction ? 'producción' : 'desarrollo', '- Admin:', data.isAdmin);
+      } else {
+        const errorData = await res.json().catch(() => ({}));
+        setError(errorData.message || 'Usuario o contraseña incorrectos')
+      }
+    } catch (error) {
+      console.error('Error en login:', error);
+      setError('Error de conexión. Intenta de nuevo.');
     }
   }
 
@@ -535,7 +578,7 @@ function App() {
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
           {window.location.hostname !== 'localhost' 
-            ? 'Verificando sesión en producción...' 
+            ? 'Verificando sesión con el servidor (cookies + tokens)...' 
             : 'Si es la primera vez que accedes hoy, el servidor puede tardar unos segundos en responder'
           }
         </Typography>
