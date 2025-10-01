@@ -309,15 +309,15 @@ function App() {
       ...options.headers
     };
 
-    // Si hay token, usarlo; sino, confiar en las cookies
+    // Usar token JWT para autenticación (funciona entre dominios)
     if (sesionLocal && sesionLocal.token) {
       headers['Authorization'] = `Bearer ${sesionLocal.token}`;
     }
 
     return fetch(url, {
       ...options,
-      headers,
-      credentials: 'include' // Para cookies
+      headers
+      // Sin credentials: 'include' para evitar problemas CORS cross-domain
     });
   };
 
@@ -336,7 +336,6 @@ function App() {
     try {
       const response = await fetch('https://api-renacer.onrender.com/auth/verificar', {
         method: 'HEAD',
-        credentials: 'include',
         signal: AbortSignal.timeout(10000) // Más tiempo para servidores dormidos
       });
       return response.status < 500; // Cualquier respuesta que no sea error de servidor
@@ -402,7 +401,6 @@ function App() {
         const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
           method: "GET",
           headers: headers,
-          credentials: "include", // Importante para enviar cookies (si funcionan)
           signal: controller.signal
         });
         
@@ -485,8 +483,7 @@ function App() {
       
       await fetch("https://api-renacer.onrender.com/auth/logout", {
         method: "POST",
-        headers: headers,
-        credentials: "include", // Para cookies (si funcionan)
+        headers: headers
       });
       
       console.log('Logout enviado al servidor');
@@ -520,7 +517,6 @@ function App() {
       const res = await fetch("https://api-renacer.onrender.com/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // Para cookies (si funcionan)
         body: JSON.stringify({ usuario, contrasena: password })
       });
       
