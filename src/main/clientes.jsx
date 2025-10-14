@@ -291,9 +291,18 @@ function Clientes() {
   };
    
   return (
-    <Box>
+  <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
       {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
+          mb: 3
+        }}
+      >
         <Typography variant="h5">Gestión de Clientes</Typography>
         <Button
           variant="contained"
@@ -307,9 +316,10 @@ function Clientes() {
 
       {/* Controles de búsqueda y paginación */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} sm={7}>
           <TextField
             fullWidth
+            size="small"
             placeholder="Buscar cliente por CI, nombre, teléfono o dirección..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -322,29 +332,32 @@ function Clientes() {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => searchClientes(1)}
-                    sx={{ backgroundColor: "#ff8c42", mr: 1 }}
-                  >
-                    Buscar
-                  </Button>
-                  {isSearching && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       size="small"
-                      onClick={clearSearch}
+                      onClick={() => searchClientes(1)}
+                      sx={{ backgroundColor: "#ff8c42" }}
                     >
-                      Limpiar
+                      Buscar
                     </Button>
-                  )}
+                    {isSearching && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={clearSearch}
+                      >
+                        Limpiar
+                      </Button>
+                    )}
+                  </Box>
                 </InputAdornment>
               ),
             }}
+            sx={{ mb: { xs: 1, sm: 0 } }}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+  <Grid item xs={12} md={4} sm={5}>
           <FormControl fullWidth size="small">
             <InputLabel>Filas por página</InputLabel>
             <Select
@@ -362,7 +375,7 @@ function Clientes() {
       </Grid>
 
       {/* Información de resultados */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <Box sx={{ mb: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1 }}>
         <Typography variant="body2" color="text.secondary">
           {isSearching ? (
             `Mostrando ${clientes.length} de ${totalClientes} resultados para "${searchTerm}"`
@@ -382,21 +395,21 @@ function Clientes() {
       </Box>
 
       {/* Tabla de clientes */}
-      <Paper sx={{ width: "100%", overflow: "hidden" }}>
+  <Paper sx={{ width: "100%", overflowX: "auto", boxShadow: { xs: 0, sm: 1 } }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
-                            <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+          <TableContainer sx={{ maxHeight: { xs: 340, sm: 440 } }}>
+            <Table size="small" stickyHeader>
+              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableRow>
-                  <TableCell>CI</TableCell>
-                  <TableCell>Nombre</TableCell>
-                  <TableCell>Teléfono</TableCell>
-                  <TableCell>Dirección</TableCell>
-                  <TableCell>Acciones</TableCell>
+                  <TableCell sx={{ minWidth: 80 }}>CI</TableCell>
+                  <TableCell sx={{ minWidth: 120 }}>Nombre</TableCell>
+                  <TableCell sx={{ minWidth: 100 }}>Teléfono</TableCell>
+                  <TableCell sx={{ minWidth: 140 }}>Dirección</TableCell>
+                  <TableCell sx={{ minWidth: 110 }}>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -410,34 +423,36 @@ function Clientes() {
                   clientes.map((cliente) => (
                     <TableRow key={cliente.ci} hover>
                       <TableCell>{cliente.ci}</TableCell>
-                      <TableCell>{cliente.nombre}</TableCell>
-                      <TableCell>{cliente.telefono}</TableCell>
-                      <TableCell>{cliente.direccion}</TableCell>
+                      <TableCell sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cliente.nombre}</TableCell>
+                      <TableCell sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cliente.telefono}</TableCell>
+                      <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cliente.direccion}</TableCell>
                       <TableCell>
-                        <IconButton 
-                          color="info" 
-                          size="small"
-                          onClick={() => openViewModal(cliente)}
-                          title="Ver detalles"
-                        >
-                          <Visibility />
-                        </IconButton>
-                        <IconButton 
-                          color="primary" 
-                          size="small"
-                          onClick={() => openEditModal(cliente)}
-                          title="Editar"
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton 
-                          color="error" 
-                          size="small"
-                          onClick={() => openDeleteModal(cliente)}
-                          title="Eliminar"
-                        >
-                          <Delete />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          <IconButton 
+                            color="info" 
+                            size="small"
+                            onClick={() => openViewModal(cliente)}
+                            title="Ver detalles"
+                          >
+                            <Visibility />
+                          </IconButton>
+                          <IconButton 
+                            color="primary" 
+                            size="small"
+                            onClick={() => openEditModal(cliente)}
+                            title="Editar"
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton 
+                            color="error" 
+                            size="small"
+                            onClick={() => openDeleteModal(cliente)}
+                            title="Eliminar"
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))
@@ -457,6 +472,8 @@ function Clientes() {
               color="primary"
               showFirstButton
               showLastButton
+              siblingCount={window.innerWidth < 600 ? 0 : 1}
+              size={window.innerWidth < 600 ? 'small' : 'medium'}
             />
           </Box>
         )}

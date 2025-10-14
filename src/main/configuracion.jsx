@@ -14,14 +14,14 @@ import { Save, Settings } from '@mui/icons-material'
 
 function Configuracion() {
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
+      <Typography variant="h5" gutterBottom sx={{ mb: 3, textAlign: { xs: 'center', sm: 'left' } }}>
         Configuración del Sistema
       </Typography>
 
       <Grid container spacing={3}>
         {/* Configuración General */}
-        <Grid item xs={12} md={6}>
+  <Grid item xs={12} sm={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -62,7 +62,7 @@ function Configuracion() {
         </Grid>
 
         {/* Configuración de Facturación */}
-        <Grid item xs={12} md={6}>
+  <Grid item xs={12} sm={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -101,7 +101,7 @@ function Configuracion() {
         </Grid>
 
         {/* Configuración de Inventario */}
-        <Grid item xs={12} md={6}>
+  <Grid item xs={12} sm={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -131,7 +131,7 @@ function Configuracion() {
         </Grid>
 
         {/* Configuración de Notificaciones */}
-        <Grid item xs={12} md={6}>
+  <Grid item xs={12} sm={12} md={6}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -171,9 +171,10 @@ function Configuracion() {
               startIcon={<Save />}
               sx={{ 
                 backgroundColor: '#ff8c42',
-                px: 4,
-                py: 1.5,
-                fontSize: '1.1rem'
+                px: { xs: 2, sm: 4 },
+                py: { xs: 1, sm: 1.5 },
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                width: { xs: '100%', sm: 'auto' }
               }}
             >
               Guardar Configuración

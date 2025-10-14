@@ -320,9 +320,18 @@ function Empleados() {
   };
 
   return (
-    <Box>
+  <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
       {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
+          mb: 3
+        }}
+      >
         <Typography variant="h5">Gestión de Empleados</Typography>
         <Button
           variant="contained"
@@ -336,9 +345,10 @@ function Empleados() {
 
       {/* Controles de búsqueda y paginación */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={8} sm={7}>
           <TextField
             fullWidth
+            size="small"
             placeholder="Buscar empleado por CI, nombre, teléfono o dirección..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -351,29 +361,32 @@ function Empleados() {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => searchEmpleados(1)}
-                    sx={{ backgroundColor: "#ff8c42", mr: 1 }}
-                  >
-                    Buscar
-                  </Button>
-                  {isSearching && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button
-                      variant="outlined"
+                      variant="contained"
                       size="small"
-                      onClick={clearSearch}
+                      onClick={() => searchEmpleados(1)}
+                      sx={{ backgroundColor: "#ff8c42" }}
                     >
-                      Limpiar
+                      Buscar
                     </Button>
-                  )}
+                    {isSearching && (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={clearSearch}
+                      >
+                        Limpiar
+                      </Button>
+                    )}
+                  </Box>
                 </InputAdornment>
               ),
             }}
+            sx={{ mb: { xs: 1, sm: 0 } }}
           />
         </Grid>
-        <Grid item xs={12} md={4}>
+  <Grid item xs={12} md={4} sm={5}>
           <FormControl fullWidth size="small">
             <InputLabel>Filas por página</InputLabel>
             <Select
@@ -391,7 +404,7 @@ function Empleados() {
       </Grid>
 
       {/* Información de resultados */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+  <Box sx={{ mb: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1 }}>
         <Typography variant="body2" color="text.secondary">
           {isSearching ? (
             `Mostrando ${empleados.length} de ${totalEmpleados} resultados para "${searchTerm}"`
@@ -411,22 +424,22 @@ function Empleados() {
       </Box>
 
       {/* Tabla de empleados */}
-      <Paper sx={{ width: "100%", overflow: "hidden" }}>
+  <Paper sx={{ width: "100%", overflowX: "auto", boxShadow: { xs: 0, sm: 1 } }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer>
-            <Table>
+          <TableContainer sx={{ maxHeight: { xs: 340, sm: 440 } }}>
+            <Table size="small" stickyHeader>
               <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableRow>
-                  <TableCell>CI</TableCell>
-                  <TableCell>Nombre</TableCell>
-                  <TableCell>Edad</TableCell>
-                  <TableCell>Teléfono</TableCell>
-                  <TableCell>Usuario Sistema</TableCell>
-                  <TableCell>Acciones</TableCell>
+                  <TableCell sx={{ minWidth: 80 }}>CI</TableCell>
+                  <TableCell sx={{ minWidth: 120 }}>Nombre</TableCell>
+                  <TableCell sx={{ minWidth: 60 }}>Edad</TableCell>
+                  <TableCell sx={{ minWidth: 100 }}>Teléfono</TableCell>
+                  <TableCell sx={{ minWidth: 120 }}>Usuario Sistema</TableCell>
+                  <TableCell sx={{ minWidth: 110 }}>Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -440,9 +453,9 @@ function Empleados() {
                   empleados.map((empleado) => (
                     <TableRow key={empleado.ci} hover>
                       <TableCell>{empleado.ci}</TableCell>
-                      <TableCell>{empleado.nombre}</TableCell>
+                      <TableCell sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{empleado.nombre}</TableCell>
                       <TableCell>{calculateAge(empleado.fechanac)} años</TableCell>
-                      <TableCell>{empleado.telefono}</TableCell>
+                      <TableCell sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{empleado.telefono}</TableCell>
                       <TableCell>
                         {empleado.usuario ? (
                           <Chip 
@@ -459,30 +472,32 @@ function Empleados() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <IconButton 
-                          color="info" 
-                          size="small"
-                          onClick={() => openViewModal(empleado)}
-                          title="Ver detalles"
-                        >
-                          <Visibility />
-                        </IconButton>
-                        <IconButton 
-                          color="primary" 
-                          size="small"
-                          onClick={() => openEditModal(empleado)}
-                          title="Editar"
-                        >
-                          <Edit />
-                        </IconButton>
-                        <IconButton 
-                          color="error" 
-                          size="small"
-                          onClick={() => openDeleteModal(empleado)}
-                          title="Eliminar"
-                        >
-                          <Delete />
-                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          <IconButton 
+                            color="info" 
+                            size="small"
+                            onClick={() => openViewModal(empleado)}
+                            title="Ver detalles"
+                          >
+                            <Visibility />
+                          </IconButton>
+                          <IconButton 
+                            color="primary" 
+                            size="small"
+                            onClick={() => openEditModal(empleado)}
+                            title="Editar"
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton 
+                            color="error" 
+                            size="small"
+                            onClick={() => openDeleteModal(empleado)}
+                            title="Eliminar"
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))
@@ -502,6 +517,8 @@ function Empleados() {
               color="primary"
               showFirstButton
               showLastButton
+              siblingCount={window.innerWidth < 600 ? 0 : 1}
+              size={window.innerWidth < 600 ? 'small' : 'medium'}
             />
           </Box>
         )}

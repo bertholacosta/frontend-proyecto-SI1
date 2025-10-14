@@ -141,22 +141,23 @@ function DashboardPrincipal({ onLogout, userInfo }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', height: '100vh' }}>
+      <Box sx={{ display: 'flex', height: '100vh', flexDirection: { xs: 'column', md: 'row' } }}>
         {/* Menú lateral */}
         <Drawer
           variant="persistent"
           anchor="left"
           open={drawerOpen}
           sx={{
-            width: drawerOpen ? 250 : 0,
+            width: { xs: drawerOpen ? 220 : 0, sm: 250 },
             flexShrink: 0,
             '& .MuiDrawer-paper': {
-              width: 250,
+              width: { xs: 220, sm: 250 },
               boxSizing: 'border-box',
               backgroundColor: '#1a1a1a',
               borderRight: '2px solid #ff8c42',
               overflowX: 'hidden',
             },
+            display: { xs: 'block', md: 'block' }
           }}
         >
           <Box sx={{ p: 2, backgroundColor: '#ff8c42' }}>
@@ -214,7 +215,7 @@ function DashboardPrincipal({ onLogout, userInfo }) {
         </Drawer>
 
         {/* Contenido principal */}
-        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+  <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <AppBar position="static" sx={{ backgroundColor: '#2a2a2a' }}>
             <Toolbar>
               <IconButton
@@ -248,17 +249,16 @@ function DashboardPrincipal({ onLogout, userInfo }) {
             </Toolbar>
           </AppBar>
           
-          <Box sx={{ flexGrow: 1, p: 3, backgroundColor: '#f5f5f5' }}>
-            <Container maxWidth="xl">
-              <Typography variant="h4" gutterBottom>
+          <Box sx={{ flexGrow: 1, p: { xs: 1, sm: 2, md: 3 }, backgroundColor: '#f5f5f5', minWidth: 0 }}>
+            <Container maxWidth="xl" sx={{ px: { xs: 0.5, sm: 2 } }}>
+              <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2.2rem' }, textAlign: { xs: 'center', sm: 'left' } }}>
                 Bienvenido al Sistema de Gestión
               </Typography>
-              <Typography variant="body1" color="text.secondary" paragraph>
+              <Typography variant="body1" color="text.secondary" paragraph sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                 Panel de control para Multiservicio Renacer - Taller de Motos
               </Typography>
-              
               {/* Contenido dinámico según la sección seleccionada */}
-              <Box sx={{ mt: 4 }}>
+              <Box sx={{ mt: { xs: 2, sm: 4 } }}>
                 {selectedItem === 'dashboard' && <Dashboard />}
                 {selectedItem === 'clientes' && <Clientes />}
                 {selectedItem === 'empleados' && <Empleados />}
@@ -661,7 +661,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box className="login-container" sx={{ display: 'flex', minHeight: '100vh' }}>
+      <Box className="login-container" sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh' }}>
         {/* Lado izquierdo */}
         <Box 
           className="left-side"
@@ -673,21 +673,24 @@ function App() {
             justifyContent: 'center',
             alignItems: 'center',
             background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b1a 50%, #e55a00 100%)',
+            minHeight: { xs: 180, sm: 'auto' },
+            maxHeight: { xs: 260, sm: 'none' },
           }}
         >
           {/* Contenedor de logo y letras en fila */}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: 0, // espacio entre logo y letras
+            gap: { xs: 0, sm: 2 },
             zIndex: 1,
+            flexDirection: { xs: 'column', sm: 'row' },
           }}>
             <img
               src="/logo.png"
               alt="Logo MR"
               style={{
-                width: '400px',
-                height: '400px',
+                width: 'min(70vw, 220px)',
+                height: 'min(70vw, 220px)',
                 objectFit: 'contain',
                 filter: 'brightness(1) drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
               }}
@@ -696,11 +699,12 @@ function App() {
               src="/letras.png"
               alt="Multiservicio Renacer"
               style={{
-                width: '450px',
+                width: 'min(80vw, 250px)',
                 height: 'auto',
                 objectFit: 'contain',
                 filter: 'brightness(1) drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
-                marginLeft: '-200px',
+                marginLeft: 0,
+                marginTop: 0,
               }}
             />
           </Box>
@@ -716,6 +720,7 @@ function App() {
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.1)',
               animation: 'pulse 2s ease-in-out infinite',
+              display: { xs: 'none', sm: 'block' }
             }}
           />
           <Box
@@ -728,6 +733,7 @@ function App() {
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.15)',
               animation: 'pulse 2s ease-in-out infinite 1s',
+              display: { xs: 'none', sm: 'block' }
             }}
           />
         </Box>
@@ -742,6 +748,7 @@ function App() {
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: '#000',
+            minHeight: { xs: 320, sm: 'auto' },
           }}
         >
           <Box 
@@ -768,14 +775,14 @@ function App() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              height: '100vh',
-              py: 4
+              minHeight: { xs: 'auto', sm: '100vh' },
+              py: { xs: 2, sm: 4 }
             }}
           >
             <Paper
               elevation={20}
               sx={{
-                p: { xs: 3, sm: 4, md: 5 },
+                p: { xs: 2, sm: 4, md: 5 },
                 width: '100%',
                 maxWidth: 450,
                 backgroundColor: 'rgba(30, 30, 30, 0.95)',
@@ -794,7 +801,7 @@ function App() {
                 sx={{ 
                   mb: 1,
                   fontWeight: 'bold',
-                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                  fontSize: { xs: '1.6rem', sm: '2.5rem', md: '3rem' },
                   textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8)',
                   background: 'linear-gradient(45deg, #ff8c42, #ff6b1a)',
                   backgroundClip: 'text',
@@ -808,7 +815,7 @@ function App() {
               <Typography 
                 variant="body1" 
                 color="rgba(255, 255, 255, 0.7)" 
-                sx={{ mb: 4, fontSize: '1rem' }}
+                sx={{ mb: 4, fontSize: { xs: '0.95rem', sm: '1rem' } }}
               >
                 Accede a tu cuenta
               </Typography>
@@ -904,7 +911,7 @@ function App() {
                   size="large"
                   sx={{
                     py: 2,
-                    fontSize: '1.1rem',
+                    fontSize: { xs: '1rem', sm: '1.1rem' },
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
                     borderRadius: 3,
@@ -918,11 +925,11 @@ function App() {
                 </Button>
               </Box>
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, flexWrap: 'wrap', pt: 2 }}>
-                <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: '0.9rem' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', pt: 2 }}>
+                <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
                   ¿Olvidaste tu contraseña?
                 </Link>
-                <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: '0.9rem' }}>
+                <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
                   Crear cuenta nueva
                 </Link>
               </Box>

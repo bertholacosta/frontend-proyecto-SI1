@@ -60,18 +60,22 @@ function Dashboard() {
   }, [])
 
   return (
-    <Box>
-      <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+    <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
+      <Typography variant="h5" gutterBottom sx={{ mb: 3, textAlign: { xs: 'center', sm: 'left' } }}>
         Dashboard Principal
       </Typography>
-      
-      <Grid container spacing={3}>
+
+      <Grid container spacing={{ xs: 2, sm: 3 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
-            <Card sx={{ 
-              height: '100%', 
+            <Card sx={{
+              height: '100%',
               background: 'linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%)',
               border: '1px solid #ddd',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: { xs: 180, sm: 200 },
               '&:hover': {
                 transform: 'translateY(-2px)',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
@@ -80,20 +84,26 @@ function Dashboard() {
             }}>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Box sx={{ 
-                    p: 1, 
-                    borderRadius: '50%', 
+                  <Box sx={{
+                    p: 1,
+                    borderRadius: '50%',
                     backgroundColor: stat.color,
                     color: 'white',
-                    mr: 2
+                    mr: 2,
+                    minWidth: 40,
+                    minHeight: 40,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: { xs: 22, sm: 28 }
                   }}>
                     {stat.icon}
                   </Box>
-                  <Typography variant="h6" component="div">
+                  <Typography variant="h6" component="div" sx={{ fontSize: { xs: 16, sm: 20 } }}>
                     {stat.title}
                   </Typography>
                 </Box>
-                <Typography variant="h4" color="primary" fontWeight="bold">
+                <Typography variant="h4" color="primary" fontWeight="bold" sx={{ fontSize: { xs: 28, sm: 34 } }}>
                   {stat.loading ? (
                     <CircularProgress size={24} sx={{ color: stat.color }} />
                   ) : (
@@ -101,8 +111,8 @@ function Dashboard() {
                   )}
                 </Typography>
               </CardContent>
-              <CardActions>
-                <Button size="small" sx={{ color: stat.color }}>
+              <CardActions sx={{ justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+                <Button size="small" sx={{ color: stat.color, fontSize: { xs: 13, sm: 15 } }}>
                   Ver detalles
                 </Button>
               </CardActions>
