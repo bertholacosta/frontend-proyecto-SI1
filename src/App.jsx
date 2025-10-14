@@ -41,6 +41,9 @@ import Clientes from './main/clientes'
 import Empleados from './main/empleados'
 import Usuarios from './main/usuarios'
 import Configuracion from './main/configuracion'
+import Motos from './main/motos'
+import Diagnosticos from './main/diagnosticos'
+import Proformas from './main/proformas'
 
 import './App.css'
 
@@ -124,7 +127,9 @@ function DashboardPrincipal({ onLogout, userInfo }) {
     { id: 'clientes', label: 'Clientes', icon: <PeopleIcon />, adminOnly: false },
     { id: 'empleados', label: 'Empleados', icon: <BadgeIcon />, adminOnly: true },
     { id: 'usuarios', label: 'Usuarios', icon: <ManageAccountsIcon />, adminOnly: true },
-   // { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
+  { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
+  { id: 'diagnosticos', label: 'Diagnósticos', icon: <BuildIcon />, adminOnly: false },
+  { id: 'proformas', label: 'Proformas', icon: <ReceiptIcon />, adminOnly: false },
    // { id: 'servicios', label: 'Servicios', icon: <BuildIcon />, adminOnly: false },
    // { id: 'inventario', label: 'Inventario', icon: <InventoryIcon />, adminOnly: false },
     //{ id: 'facturas', label: 'Facturas', icon: <ReceiptIcon />, adminOnly: false },
@@ -264,6 +269,8 @@ function DashboardPrincipal({ onLogout, userInfo }) {
                 {selectedItem === 'empleados' && <Empleados />}
                 {selectedItem === 'usuarios' && <Usuarios />}
                 {selectedItem === 'motos' && <Motos />}
+                {selectedItem === 'diagnosticos' && <Diagnosticos />}
+                {selectedItem === 'proformas' && <Proformas />}
                 {selectedItem === 'servicios' && <Servicios />}
                 {selectedItem === 'inventario' && <Inventario />}
                 {selectedItem === 'facturas' && <Facturas />}
