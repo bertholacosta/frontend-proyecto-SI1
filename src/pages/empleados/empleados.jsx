@@ -26,12 +26,17 @@ import {
   FormControl,
   InputLabel,
   Grid,
+  Container,
+  useMediaQuery,
+  Card,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles'
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
-import { useEffect, useState } from "react";
-import { fetchAuth } from '../utils/fetchAuth';
+import { useEffect, useState, useCallback } from "react";
 
 function Empleados() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Estados
   const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +46,11 @@ function Empleados() {
   
   // Estados para paginación
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalEmpleados, setTotalEmpleados] = useState(0);
-  const [sortBy, setSortBy] = useState('nombre');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy] = useState('nombre');
+  const [sortOrder] = useState('asc');
   const [isSearching, setIsSearching] = useState(false);
   
   // Estados para modales
@@ -65,7 +70,9 @@ function Empleados() {
   });
 
   // Cargar empleados con paginación
-  const fetchEmpleados = async (currentPage = page, currentRowsPerPage = rowsPerPage) => {
+  const fetchEmpleados = useCallback(async (currentPageParam, currentRowsPerPageParam) => {
+    const currentPage = typeof currentPageParam === 'number' ? currentPageParam : page;
+    const currentRowsPerPage = typeof currentRowsPerPageParam === 'number' ? currentRowsPerPageParam : rowsPerPage;
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -75,16 +82,16 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetchAuth(`/empleados?${params}`, {
+      const res = await fetch(`http://localhost:3000/empleados?${params}`, {
         method: "GET",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
-        const data = await res.json();
-        setEmpleados(data.empleados || []);
-        setTotalPages(data.pagination?.totalPages || 0);
-        setTotalEmpleados(data.pagination?.totalEmpleados || 0);
+        const json = await res.json();
+        setEmpleados(json.empleados || []);
+        setTotalPages(json.pagination?.totalPages || 0);
+        setTotalEmpleados(json.pagination?.totalEmpleados || 0);
         setIsSearching(false);
       } else {
         throw new Error('Error al obtener empleados');
@@ -95,7 +102,7 @@ function Empleados() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, sortBy, sortOrder]);
 
   // Buscar empleados con paginación
   const searchEmpleados = async (currentPage = 1) => {
@@ -117,9 +124,9 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetchAuth(`/empleados/search?${params}`, {
+      const res = await fetch(`http://localhost:3000/empleados/search?${params}`, {
         method: "GET",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
@@ -142,15 +149,15 @@ function Empleados() {
   // Crear empleado
   const createEmpleado = async () => {
     try {
-      const res = await fetchAuth("/empleados", {
+      const res = await fetch("http://localhost:3000/empleados", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        
+        credentials: "include",
         body: JSON.stringify(formData)
       });
       
       if (res.ok) {
-        const data = await res.json();
+        await res.json();
         setSuccess('Empleado creado exitosamente');
         setShowCreateModal(false);
         resetForm();
@@ -168,10 +175,10 @@ function Empleados() {
   // Actualizar empleado
   const updateEmpleado = async () => {
     try {
-      const res = await fetchAuth(`/empleados/${selectedEmpleado.ci}`, {
+      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        
+        credentials: "include",
         body: JSON.stringify({
           nombre: formData.nombre,
           fechanac: formData.fechanac,
@@ -181,6 +188,7 @@ function Empleados() {
       });
       
       if (res.ok) {
+        await res.json();
         setSuccess('Empleado actualizado exitosamente');
         setShowEditModal(false);
         resetForm();
@@ -198,12 +206,13 @@ function Empleados() {
   // Eliminar empleado
   const deleteEmpleado = async () => {
     try {
-      const res = await fetchAuth(`/empleados/${selectedEmpleado.ci}`, {
+      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
         method: "DELETE",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
+        await res.json();
         setSuccess('Empleado eliminado exitosamente');
         setShowDeleteModal(false);
         refreshData();
@@ -268,29 +277,11 @@ function Empleados() {
     }
   };
 
-  // Manejar cambio de filas por página
-  const handleRowsPerPageChange = (event) => {
-    const newRowsPerPage = parseInt(event.target.value);
-    setRowsPerPage(newRowsPerPage);
-    setPage(1);
-    if (isSearching) {
-      searchEmpleados(1);
-    } else {
-      fetchEmpleados(1, newRowsPerPage);
-    }
-  };
-
-  // Limpiar búsqueda
-  const clearSearch = () => {
-    setSearchTerm('');
-    setIsSearching(false);
-    setPage(1);
-    fetchEmpleados(1, rowsPerPage);
-  };
+  // NOTE: handleRowsPerPageChange and clearSearch were removed because they were unused after UI updates
 
   useEffect(() => {
     fetchEmpleados();
-  }, []);
+  }, [fetchEmpleados]);
 
   // Refrescar datos después de operaciones CRUD
   const refreshData = () => {
@@ -320,91 +311,70 @@ function Empleados() {
   };
 
   return (
-  <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: { xs: "stretch", sm: "center" },
-          gap: 2,
-          mb: 3
-        }}
-      >
-        <Typography variant="h5">Gestión de Empleados</Typography>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
+      {/* Header responsive */}
+      <Box sx={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        justifyContent: 'space-between',
+        alignItems: isMobile ? 'stretch' : 'center',
+        gap: 2,
+        mb: 3
+      }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'}>Gestión de Empleados</Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
           sx={{ backgroundColor: "#ff8c42" }}
           onClick={() => setShowCreateModal(true)}
+          fullWidth={isMobile}
+          size={isMobile ? 'small' : 'medium'}
         >
           Nuevo Empleado
         </Button>
       </Box>
 
-      {/* Controles de búsqueda y paginación */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8} sm={7}>
+      {/* Controles de búsqueda y paginación (responsive) */}
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={8} md={6}>
           <TextField
             fullWidth
-            size="small"
             placeholder="Buscar empleado por CI, nombre, teléfono o dirección..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchEmpleados()}
+            size={isMobile ? 'small' : 'medium'}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <Search />
                 </InputAdornment>
               ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => searchEmpleados(1)}
-                      sx={{ backgroundColor: "#ff8c42" }}
-                    >
-                      Buscar
-                    </Button>
-                    {isSearching && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={clearSearch}
-                      >
-                        Limpiar
-                      </Button>
-                    )}
-                  </Box>
-                </InputAdornment>
-              ),
             }}
-            sx={{ mb: { xs: 1, sm: 0 } }}
           />
         </Grid>
-  <Grid item xs={12} md={4} sm={5}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Filas por página</InputLabel>
-            <Select
-              value={rowsPerPage}
-              label="Filas por página"
-              onChange={handleRowsPerPageChange}
-            >
-              <MenuItem value={5}>5</MenuItem>
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={25}>25</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-            </Select>
-          </FormControl>
+        <Grid item xs={12} sm={4} md={2}>
+          <TextField
+            fullWidth
+            placeholder="Filtrar"
+            size={isMobile ? 'small' : 'medium'}
+          />
+        </Grid>
+        <Grid item xs={12} sm={12} md={4}>
+          <Button
+            variant="contained"
+            fullWidth={isMobile}
+            size={isMobile ? 'small' : 'medium'}
+            onClick={() => searchEmpleados(1)}
+            sx={{ backgroundColor: "#ff8c42" }}
+          >
+            Buscar
+          </Button>
         </Grid>
       </Grid>
 
       {/* Información de resultados */}
-  <Box sx={{ mb: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1 }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body2" color="text.secondary">
           {isSearching ? (
             `Mostrando ${empleados.length} de ${totalEmpleados} resultados para "${searchTerm}"`
@@ -418,95 +388,90 @@ function Empleados() {
             page={page}
             onChange={handlePageChange}
             color="primary"
-            size="small"
+            size={isMobile ? 'small' : 'medium'}
           />
         )}
       </Box>
 
-      {/* Tabla de empleados */}
-  <Paper sx={{ width: "100%", overflowX: "auto", boxShadow: { xs: 0, sm: 1 } }}>
+      {/* Contenido principal: Cards en móvil, Tabla en desktop */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: { xs: 340, sm: 440 } }}>
-            <Table size="small" stickyHeader>
-              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
-                <TableRow>
-                  <TableCell sx={{ minWidth: 80 }}>CI</TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Nombre</TableCell>
-                  <TableCell sx={{ minWidth: 60 }}>Edad</TableCell>
-                  <TableCell sx={{ minWidth: 100 }}>Teléfono</TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Usuario Sistema</TableCell>
-                  <TableCell sx={{ minWidth: 110 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <Box sx={{ mt: 2 }}>
+            {isMobile ? (
+              <Box>
                 {empleados.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No se encontraron empleados
-                    </TableCell>
-                  </TableRow>
+                  <Typography align="center">No se encontraron empleados</Typography>
                 ) : (
                   empleados.map((empleado) => (
-                    <TableRow key={empleado.ci} hover>
-                      <TableCell>{empleado.ci}</TableCell>
-                      <TableCell sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{empleado.nombre}</TableCell>
-                      <TableCell>{calculateAge(empleado.fechanac)} años</TableCell>
-                      <TableCell sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{empleado.telefono}</TableCell>
-                      <TableCell>
-                        {empleado.usuario ? (
-                          <Chip 
-                            label={empleado.usuario.usuario} 
-                            color="success" 
-                            size="small" 
-                          />
-                        ) : (
-                          <Chip 
-                            label="Sin usuario" 
-                            color="default" 
-                            size="small" 
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          <IconButton 
-                            color="info" 
-                            size="small"
-                            onClick={() => openViewModal(empleado)}
-                            title="Ver detalles"
-                          >
-                            <Visibility />
-                          </IconButton>
-                          <IconButton 
-                            color="primary" 
-                            size="small"
-                            onClick={() => openEditModal(empleado)}
-                            title="Editar"
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton 
-                            color="error" 
-                            size="small"
-                            onClick={() => openDeleteModal(empleado)}
-                            title="Eliminar"
-                          >
-                            <Delete />
-                          </IconButton>
+                    <Card key={empleado.ci} sx={{ mb: 2, p: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h6" gutterBottom>{empleado.nombre}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>CI:</strong> {empleado.ci}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Edad:</strong> {calculateAge(empleado.fechanac)}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Teléfono:</strong> {empleado.telefono}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Usuario:</strong> {empleado.usuario?.usuario || 'Sin usuario'}</Typography>
                         </Box>
-                      </TableCell>
-                    </TableRow>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton size="small" color="primary" onClick={() => openEditModal(empleado)} title="Editar"><Edit /></IconButton>
+                          <IconButton size="small" color="error" onClick={() => openDeleteModal(empleado)} title="Eliminar"><Delete /></IconButton>
+                        </Box>
+                      </Box>
+                    </Card>
                   ))
                 )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableRow>
+                      <TableCell>CI</TableCell>
+                      <TableCell>Nombre</TableCell>
+                      <TableCell>Edad</TableCell>
+                      <TableCell>Teléfono</TableCell>
+                      <TableCell>Usuario Sistema</TableCell>
+                      <TableCell>Acciones</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {empleados.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">No se encontraron empleados</TableCell>
+                      </TableRow>
+                    ) : (
+                      empleados.map((empleado) => (
+                        <TableRow key={empleado.ci} hover>
+                          <TableCell>{empleado.ci}</TableCell>
+                          <TableCell>{empleado.nombre}</TableCell>
+                          <TableCell>{calculateAge(empleado.fechanac)} años</TableCell>
+                          <TableCell>{empleado.telefono}</TableCell>
+                          <TableCell>
+                            {empleado.usuario ? (
+                              <Chip label={empleado.usuario.usuario} color="success" size="small" />
+                            ) : (
+                              <Chip label="Sin usuario" color="default" size="small" />
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <IconButton color="info" size="small" onClick={() => openViewModal(empleado)} title="Ver detalles"><Visibility /></IconButton>
+                            <IconButton color="primary" size="small" onClick={() => openEditModal(empleado)} title="Editar"><Edit /></IconButton>
+                            <IconButton color="error" size="small" onClick={() => openDeleteModal(empleado)} title="Eliminar"><Delete /></IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Box>
         )}
-        
+
         {/* Paginación inferior */}
         {totalPages > 1 && !loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -517,8 +482,6 @@ function Empleados() {
               color="primary"
               showFirstButton
               showLastButton
-              siblingCount={window.innerWidth < 600 ? 0 : 1}
-              size={window.innerWidth < 600 ? 'small' : 'medium'}
             />
           </Box>
         )}
@@ -811,8 +774,7 @@ function Empleados() {
           {success}
         </Alert>
       </Snackbar>
-    </Box>
+    </Container>
   );
 }
-
 export default Empleados;

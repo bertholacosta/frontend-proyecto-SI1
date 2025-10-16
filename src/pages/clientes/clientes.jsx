@@ -9,6 +9,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Card,
   IconButton,
   Chip,
   TextField,
@@ -26,12 +27,17 @@ import {
   FormControl,
   InputLabel,
   Grid,
+  Container,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles'
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
-import { useEffect, useState } from "react";
-import { fetchAuth } from '../utils/fetchAuth';
+import { useEffect, useState, useCallback } from "react";
 
 function Clientes() {
+  const theme = useTheme();
+  const isSmUp = useMediaQuery(theme.breakpoints.up('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Estados
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,8 +50,8 @@ function Clientes() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalClientes, setTotalClientes] = useState(0);
-  const [sortBy, setSortBy] = useState('nombre');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy] = useState('nombre');
+  const [sortOrder] = useState('asc');
   const [isSearching, setIsSearching] = useState(false);
   
   // Estados para modales
@@ -64,7 +70,9 @@ function Clientes() {
   });
 
   // Cargar clientes con paginación
-  const fetchClientes = async (currentPage = page, currentRowsPerPage = rowsPerPage) => {
+  const fetchClientes = useCallback(async (currentPageParam, currentRowsPerPageParam) => {
+    const currentPage = typeof currentPageParam === 'number' ? currentPageParam : page;
+    const currentRowsPerPage = typeof currentRowsPerPageParam === 'number' ? currentRowsPerPageParam : rowsPerPage;
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -74,10 +82,11 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetchAuth(`/clientes?${params}`, {
-        method: "GET"
+      const res = await fetch(`http://localhost:3000/clientes?${params}`, {
+        method: "GET",
+        credentials: "include",
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         setClientes(data.clientes || []);
@@ -93,7 +102,7 @@ function Clientes() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, sortBy, sortOrder]);
 
   // Buscar clientes con paginación
   const searchClientes = async (currentPage = 1) => {
@@ -103,7 +112,7 @@ function Clientes() {
       fetchClientes(1, rowsPerPage);
       return;
     }
-    
+
     try {
       setLoading(true);
       setIsSearching(true);
@@ -115,10 +124,11 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetchAuth(`/clientes/search?${params}`, {
-        method: "GET"
+      const res = await fetch(`http://localhost:3000/clientes/search?${params}`, {
+        method: "GET",
+        credentials: "include",
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         setClientes(data.clientes || []);
@@ -139,13 +149,15 @@ function Clientes() {
   // Crear cliente
   const createCliente = async () => {
     try {
-      const res = await fetchAuth("/clientes", {
+      const res = await fetch("http://localhost:3000/clientes", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formData)
       });
       
       if (res.ok) {
-        const data = await res.json();
+        await res.json();
         setSuccess('Cliente creado exitosamente');
         setShowCreateModal(false);
         resetForm();
@@ -163,8 +175,10 @@ function Clientes() {
   // Actualizar cliente
   const updateCliente = async () => {
     try {
-      const res = await fetchAuth(`/clientes/${selectedCliente.ci}`, {
+      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           nombre: formData.nombre,
           telefono: formData.telefono,
@@ -190,8 +204,9 @@ function Clientes() {
   // Eliminar cliente
   const deleteCliente = async () => {
     try {
-      const res = await fetchAuth(`/clientes/${selectedCliente.ci}`, {
-        method: "DELETE"
+      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+        method: "DELETE",
+        credentials: "include",
       });
       
       if (res.ok) {
@@ -279,7 +294,7 @@ function Clientes() {
 
   useEffect(() => {
     fetchClientes();
-  }, []);
+  }, [fetchClientes]);
 
   // Refrescar datos después de operaciones CRUD
   const refreshData = () => {
@@ -289,41 +304,40 @@ function Clientes() {
       fetchClientes(page, rowsPerPage);
     }
   };
-   
   return (
-  <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: { xs: "stretch", sm: "center" },
-          gap: 2,
-          mb: 3
-        }}
-      >
-        <Typography variant="h5">Gestión de Clientes</Typography>
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          sx={{ backgroundColor: "#ff8c42" }}
-          onClick={() => setShowCreateModal(true)}
-        >
-          Nuevo Cliente
-        </Button>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
+      {/* Header responsive */}
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          justifyContent: 'space-between',
+          alignItems: isMobile ? 'stretch' : 'center',
+          gap: isMobile ? 2 : 0
+        }}>
+          <Typography variant={isMobile ? 'h5' : 'h4'}>Gestión de Clientes</Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            fullWidth={isMobile}
+            sx={{ maxWidth: isMobile ? '100%' : '200px', backgroundColor: '#ff8c42' }}
+            onClick={() => setShowCreateModal(true)}
+          >
+            Nuevo Cliente
+          </Button>
+        </Box>
       </Box>
 
-      {/* Controles de búsqueda y paginación */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8} sm={7}>
+      {/* Controles de búsqueda y paginación (responsive) */}
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
+        <Grid item xs={12} sm={8}>
           <TextField
             fullWidth
-            size="small"
             placeholder="Buscar cliente por CI, nombre, teléfono o dirección..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchClientes()}
+            size={isMobile ? 'small' : 'medium'}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -332,139 +346,153 @@ function Clientes() {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    size={isMobile ? 'small' : 'medium'}
+                    onClick={() => searchClientes(1)}
+                    sx={{ backgroundColor: "#ff8c42", mr: 1 }}
+                    fullWidth={isMobile}
+                  >
+                    Buscar
+                  </Button>
+                  {isSearching && (
                     <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => searchClientes(1)}
-                      sx={{ backgroundColor: "#ff8c42" }}
+                      variant="outlined"
+                      size={isMobile ? 'small' : 'medium'}
+                      onClick={clearSearch}
                     >
-                      Buscar
+                      Limpiar
                     </Button>
-                    {isSearching && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={clearSearch}
-                      >
-                        Limpiar
-                      </Button>
-                    )}
-                  </Box>
+                  )}
                 </InputAdornment>
               ),
             }}
-            sx={{ mb: { xs: 1, sm: 0 } }}
           />
         </Grid>
-  <Grid item xs={12} md={4} sm={5}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Filas por página</InputLabel>
-            <Select
-              value={rowsPerPage}
-              label="Filas por página"
-              onChange={handleRowsPerPageChange}
-            >
-              <MenuItem value={5}>5</MenuItem>
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={25}>25</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-            </Select>
-          </FormControl>
+        <Grid item xs={12} sm={2}>
+          <TextField
+            fullWidth
+            placeholder="10"
+            size={isMobile ? 'small' : 'medium'}
+            value={rowsPerPage}
+            onChange={handleRowsPerPageChange}
+          />
+        </Grid>
+        <Grid item xs={12} sm={2}>
+          <Button
+            variant="contained"
+            fullWidth={isMobile}
+            size={isMobile ? 'small' : 'medium'}
+            onClick={() => searchClientes(1)}
+            sx={{ backgroundColor: "#ff8c42" }}
+          >
+            Buscar
+          </Button>
         </Grid>
       </Grid>
 
       {/* Información de resultados */}
-  <Box sx={{ mb: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          {isSearching ? (
-            `Mostrando ${clientes.length} de ${totalClientes} resultados para "${searchTerm}"`
-          ) : (
-            `Mostrando ${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, totalClientes)} de ${totalClientes} clientes`
+      <Grid container alignItems="center" sx={{ mb: 2 }}>
+        <Grid item xs={12} md={8}>
+          <Typography variant="body2" color="text.secondary">
+            {isSearching ? (
+              `Mostrando ${clientes.length} de ${totalClientes} resultados para "${searchTerm}"`
+            ) : (
+              `Mostrando ${(page - 1) * rowsPerPage + 1}-${Math.min(page * rowsPerPage, totalClientes)} de ${totalClientes} clientes`
+            )}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+          {totalPages > 1 && (
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
+              size={isSmUp ? 'medium' : 'small'}
+            />
           )}
-        </Typography>
-        {totalPages > 1 && (
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={handlePageChange}
-            color="primary"
-            size="small"
-          />
-        )}
-      </Box>
+        </Grid>
+      </Grid>
 
-      {/* Tabla de clientes */}
-  <Paper sx={{ width: "100%", overflowX: "auto", boxShadow: { xs: 0, sm: 1 } }}>
+      {/* Contenido principal: Cards en móvil, Tabla en desktop */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: { xs: 340, sm: 440 } }}>
-            <Table size="small" stickyHeader>
-              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
-                <TableRow>
-                  <TableCell sx={{ minWidth: 80 }}>CI</TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Nombre</TableCell>
-                  <TableCell sx={{ minWidth: 100 }}>Teléfono</TableCell>
-                  <TableCell sx={{ minWidth: 140 }}>Dirección</TableCell>
-                  <TableCell sx={{ minWidth: 110 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <Box sx={{ mt: 2 }}>
+            {isMobile ? (
+              // VISTA MÓVIL - CARDS
+              <Box>
                 {clientes.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No se encontraron clientes
-                    </TableCell>
-                  </TableRow>
+                  <Typography align="center">No se encontraron clientes</Typography>
                 ) : (
                   clientes.map((cliente) => (
-                    <TableRow key={cliente.ci} hover>
-                      <TableCell>{cliente.ci}</TableCell>
-                      <TableCell sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cliente.nombre}</TableCell>
-                      <TableCell sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cliente.telefono}</TableCell>
-                      <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cliente.direccion}</TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          <IconButton 
-                            color="info" 
-                            size="small"
-                            onClick={() => openViewModal(cliente)}
-                            title="Ver detalles"
-                          >
-                            <Visibility />
-                          </IconButton>
-                          <IconButton 
-                            color="primary" 
-                            size="small"
-                            onClick={() => openEditModal(cliente)}
-                            title="Editar"
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton 
-                            color="error" 
-                            size="small"
-                            onClick={() => openDeleteModal(cliente)}
-                            title="Eliminar"
-                          >
-                            <Delete />
-                          </IconButton>
+                    <Card key={cliente.ci} sx={{ mb: 2, p: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <Box>
+                          <Typography variant="h6">{cliente.nombre}</Typography>
+                          <Typography variant="body2" color="text.secondary">CI: {cliente.ci}</Typography>
+                          <Typography variant="body2" color="text.secondary">Tel: {cliente.telefono}</Typography>
+                          <Typography variant="body2" color="text.secondary">Dir: {cliente.direccion}</Typography>
                         </Box>
-                      </TableCell>
-                    </TableRow>
+                        <Box>
+                          <IconButton size="small" color="info" onClick={() => openViewModal(cliente)} title="Ver detalles"><Visibility /></IconButton>
+                          <IconButton size="small" color="primary" onClick={() => openEditModal(cliente)} title="Editar"><Edit /></IconButton>
+                          <IconButton size="small" color="error" onClick={() => openDeleteModal(cliente)} title="Eliminar"><Delete /></IconButton>
+                        </Box>
+                      </Box>
+                    </Card>
                   ))
                 )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </Box>
+            ) : (
+              // VISTA DESKTOP - TABLA NORMAL (misma estructura)
+              <Box sx={{ width: '100%', overflowX: 'visible' }}>
+                <TableContainer>
+                  <Table>
+                    <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                      <TableRow>
+                        <TableCell>CI</TableCell>
+                        <TableCell>Nombre</TableCell>
+                        <TableCell>Teléfono</TableCell>
+                        <TableCell>Dirección</TableCell>
+                        <TableCell>Acciones</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {clientes.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} align="center">No se encontraron clientes</TableCell>
+                        </TableRow>
+                      ) : (
+                        clientes.map((cliente) => (
+                          <TableRow key={cliente.ci} hover>
+                            <TableCell>{cliente.ci}</TableCell>
+                            <TableCell>{cliente.nombre}</TableCell>
+                            <TableCell>{cliente.telefono}</TableCell>
+                            <TableCell>{cliente.direccion}</TableCell>
+                            <TableCell>
+                              <IconButton color="info" size="small" onClick={() => openViewModal(cliente)} title="Ver detalles"><Visibility /></IconButton>
+                              <IconButton color="primary" size="small" onClick={() => openEditModal(cliente)} title="Editar"><Edit /></IconButton>
+                              <IconButton color="error" size="small" onClick={() => openDeleteModal(cliente)} title="Eliminar"><Delete /></IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+          </Box>
         )}
-        
+
         {/* Paginación inferior */}
         {totalPages > 1 && !loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 1 : 0 }}>
             <Pagination
               count={totalPages}
               page={page}
@@ -472,8 +500,7 @@ function Clientes() {
               color="primary"
               showFirstButton
               showLastButton
-              siblingCount={window.innerWidth < 600 ? 0 : 1}
-              size={window.innerWidth < 600 ? 'small' : 'medium'}
+              size={isSmUp ? 'medium' : 'small'}
             />
           </Box>
         )}
@@ -705,8 +732,7 @@ function Clientes() {
           {success}
         </Alert>
       </Snackbar>
-    </Box>
+    </Container>
   );
 }
-
 export default Clientes;

@@ -18,7 +18,9 @@ const leerSesionLocal = () => {
   }
 };
 
-// Función simple para fetch autenticado
+import { apiUrl } from './apiConfig';
+
+// Función simple para fetch autenticado (acepta rutas relativas o URLs absolutas)
 export const fetchAuth = async (url, options = {}) => {
   const sesion = leerSesionLocal();
   const headers = {
@@ -30,7 +32,7 @@ export const fetchAuth = async (url, options = {}) => {
     headers['Authorization'] = `Bearer ${sesion.token}`;
   }
 
-  const response = await fetch(url, {
+  const response = await fetch(apiUrl(url), {
     ...options,
     headers
   });

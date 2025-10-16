@@ -41,9 +41,6 @@ import Clientes from './main/clientes'
 import Empleados from './main/empleados'
 import Usuarios from './main/usuarios'
 import Configuracion from './main/configuracion'
-import Motos from './main/motos'
-import Diagnosticos from './main/diagnosticos'
-import Proformas from './main/proformas'
 
 import './App.css'
 
@@ -68,25 +65,9 @@ const leerSesionLocal = () => {
   }
 };
 
-// Función helper para hacer peticiones autenticadas (global)
-export const fetchWithAuth = async (url, options = {}) => {
-  const sesionLocal = leerSesionLocal();
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers
-  };
-
-  // Usar token JWT para autenticación (funciona entre dominios)
-  if (sesionLocal && sesionLocal.token) {
-    headers['Authorization'] = `Bearer ${sesionLocal.token}`;
-  }
-
-  return fetch(url, {
-    ...options,
-    headers
-    // Sin credentials: 'include' para evitar problemas CORS cross-domain
-  });
-};
+// Centralizar URLs y fetch
+import { apiUrl } from './utils/apiConfig';
+import { fetchAuth } from './utils/fetchAuth';
 
 // Tema personalizado con colores naranja y negro
 const theme = createTheme({
@@ -127,9 +108,7 @@ function DashboardPrincipal({ onLogout, userInfo }) {
     { id: 'clientes', label: 'Clientes', icon: <PeopleIcon />, adminOnly: false },
     { id: 'empleados', label: 'Empleados', icon: <BadgeIcon />, adminOnly: true },
     { id: 'usuarios', label: 'Usuarios', icon: <ManageAccountsIcon />, adminOnly: true },
-  { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
-  { id: 'diagnosticos', label: 'Diagnósticos', icon: <BuildIcon />, adminOnly: false },
-  { id: 'proformas', label: 'Proformas', icon: <ReceiptIcon />, adminOnly: false },
+   // { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
    // { id: 'servicios', label: 'Servicios', icon: <BuildIcon />, adminOnly: false },
    // { id: 'inventario', label: 'Inventario', icon: <InventoryIcon />, adminOnly: false },
     //{ id: 'facturas', label: 'Facturas', icon: <ReceiptIcon />, adminOnly: false },
@@ -269,8 +248,6 @@ function DashboardPrincipal({ onLogout, userInfo }) {
                 {selectedItem === 'empleados' && <Empleados />}
                 {selectedItem === 'usuarios' && <Usuarios />}
                 {selectedItem === 'motos' && <Motos />}
-                {selectedItem === 'diagnosticos' && <Diagnosticos />}
-                {selectedItem === 'proformas' && <Proformas />}
                 {selectedItem === 'servicios' && <Servicios />}
                 {selectedItem === 'inventario' && <Inventario />}
                 {selectedItem === 'facturas' && <Facturas />}
@@ -349,7 +326,7 @@ function App() {
   const verificarConectividad = async () => {
     // Primer intento rápido
     try {
-      const response = await fetch('https://api-renacer.onrender.com/health', {
+      const response = await fetch(apiUrl('/health'), {
         method: 'HEAD',
         signal: AbortSignal.timeout(5000)
       });
@@ -358,7 +335,7 @@ function App() {
     
     // Si falla, intentar con el endpoint de verificación directamente
     try {
-      const response = await fetch('https://api-renacer.onrender.com/auth/verificar', {
+      const response = await fetch(apiUrl('/auth/verificar'), {
         method: 'HEAD',
         signal: AbortSignal.timeout(10000) // Más tiempo para servidores dormidos
       });
@@ -433,7 +410,7 @@ function App() {
           headers['Authorization'] = `Bearer ${sesionLocalVerificacion.token}`;
         }
         
-        const res = await fetch("https://api-renacer.onrender.com/auth/verificar", {
+        const res = await fetch(apiUrl("/auth/verificar"), {
           method: "GET",
           headers: headers,
           signal: controller.signal
@@ -553,7 +530,7 @@ function App() {
         headers['Authorization'] = `Bearer ${sesionLocal.token}`;
       }
       
-      await fetch("https://api-renacer.onrender.com/auth/logout", {
+      await fetch(apiUrl("/auth/logout"), {
         method: "POST",
         headers: headers
       });
@@ -586,7 +563,7 @@ function App() {
     
     try {
       // Validación de credenciales
-      const res = await fetch("https://api-renacer.onrender.com/auth/login", {
+      const res = await fetch(apiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ usuario, contrasena: password })

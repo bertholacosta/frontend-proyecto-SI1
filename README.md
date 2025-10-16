@@ -1,12 +1,44 @@
-# React + Vite
+# Frontend Multiservicio Renacer (React + Vite + MUI)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este frontend está configurado para trabajar en producción con el backend:
 
-Currently, two official plugins are available:
+API: https://api-renacer.onrender.com
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Configuración de entorno
 
-## Expanding the ESLint configuration
+Se usa una variable de entorno para definir la URL base del API.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Archivo `.env.example` incluido:
+
+```
+VITE_API_BASE_URL=https://api-renacer.onrender.com
+```
+
+- En desarrollo, crea un archivo `.env` en la raíz con la variable anterior si necesitas apuntar a otra URL.
+- En Vercel, define la variable en Project Settings > Environment Variables:
+	- KEY: `VITE_API_BASE_URL`
+	- VALUE: `https://api-renacer.onrender.com`
+	- Environments: Production y Preview
+
+## Autenticación
+
+El frontend utiliza JWT almacenado en `localStorage` y un `fetchAuth` centralizado que adjunta `Authorization: Bearer <token>` a cada petición. No se usan cookies entre dominios para evitar problemas CORS.
+
+## Centralización de URLs
+
+Todas las llamadas de red usan rutas relativas (por ejemplo, `/clientes`, `/usuarios`). La base se resuelve con `src/utils/apiConfig.js`:
+
+- `API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api-renacer.onrender.com'`
+- La función `apiUrl(path)` normaliza y combina la ruta con la base.
+
+## Desarrollo
+
+Scripts disponibles:
+
+- `dev`: ejecutar Vite en modo desarrollo
+- `build`: generar build de producción
+- `preview`: previsualizar build
+
+## Despliegue
+
+En Vercel, el archivo `vercel.json` redirige todas las rutas a `index.html` para soportar SPA. Asegúrate de definir `VITE_API_BASE_URL` en las variables de entorno del proyecto.

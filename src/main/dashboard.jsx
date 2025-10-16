@@ -1,6 +1,7 @@
 import { Box, Typography, Grid, Card, CardContent, CardActions, Button, CircularProgress } from '@mui/material'
 import { TrendingUp, People, DirectionsBike, Build, Inventory, Receipt } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
+import { fetchAuth } from '../utils/fetchAuth'
 
 function Dashboard() {
   const [stats, setStats] = useState([
@@ -17,9 +18,8 @@ function Dashboard() {
     const fetchStats = async () => {
       try {
         // Obtener total de clientes
-        const clientesRes = await fetch('https://api-renacer.onrender.com/clientes?page=1&limit=1', {
-          method: 'GET',
-          credentials: 'include',
+        const clientesRes = await fetchAuth('/clientes?page=1&limit=1', {
+          method: 'GET'
         })
         
         if (clientesRes.ok) {

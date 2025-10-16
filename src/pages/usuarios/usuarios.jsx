@@ -28,7 +28,11 @@ import {
   Grid,
   FormControlLabel,
   Switch,
+  Container,
+  useMediaQuery,
+  Card,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles'
 import { 
   Add, 
   Edit, 
@@ -41,10 +45,11 @@ import {
   ArrowUpward,
   ArrowDownward
 } from "@mui/icons-material";
-import { useEffect, useState } from "react";
-import { fetchAuth } from '../utils/fetchAuth';
+import { useEffect, useState, useCallback } from "react";
 
 function Usuarios() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   // Estados
   const [usuarios, setUsuarios] = useState([]);
   const [empleadosDisponibles, setEmpleadosDisponibles] = useState([]);
@@ -55,11 +60,11 @@ function Usuarios() {
   
   // Estados para paginación
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [totalUsuarios, setTotalUsuarios] = useState(0);
-  const [sortBy, setSortBy] = useState('usuario');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortBy] = useState('usuario');
+  const [sortOrder] = useState('asc');
   const [isSearching, setIsSearching] = useState(false);
   
   // Estados para modales
@@ -87,7 +92,9 @@ function Usuarios() {
   });
 
   // Cargar usuarios con paginación
-  const fetchUsuarios = async (currentPage = page, currentRowsPerPage = rowsPerPage) => {
+  const fetchUsuarios = useCallback(async (currentPageParam, currentRowsPerPageParam) => {
+    const currentPage = typeof currentPageParam === 'number' ? currentPageParam : page;
+    const currentRowsPerPage = typeof currentRowsPerPageParam === 'number' ? currentRowsPerPageParam : rowsPerPage;
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -97,16 +104,16 @@ function Usuarios() {
         sortOrder
       });
 
-      const res = await fetchAuth(`/usuarios?${params}`, {
+      const res = await fetch(`http://localhost:3000/usuarios?${params}`, {
         method: "GET",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
-        const data = await res.json();
-        setUsuarios(data.usuarios || []);
-        setTotalPages(data.pagination?.totalPages || 0);
-        setTotalUsuarios(data.pagination?.totalUsuarios || 0);
+        const json = await res.json();
+        setUsuarios(json.usuarios || []);
+        setTotalPages(json.pagination?.totalPages || 0);
+        setTotalUsuarios(json.pagination?.totalUsuarios || 0);
         setIsSearching(false);
       } else {
         throw new Error('Error al obtener usuarios');
@@ -117,14 +124,14 @@ function Usuarios() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, sortBy, sortOrder]);
 
   // Cargar empleados disponibles (sin usuario asignado)
   const fetchEmpleadosDisponibles = async () => {
     try {
-      const res = await fetchAuth("/empleados", {
+      const res = await fetch("http://localhost:3000/empleados", {
         method: "GET",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
@@ -158,9 +165,9 @@ function Usuarios() {
         sortOrder
       });
 
-      const res = await fetchAuth(`/usuarios/search?${params}`, {
+      const res = await fetch(`http://localhost:3000/usuarios/search?${params}`, {
         method: "GET",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
@@ -183,15 +190,15 @@ function Usuarios() {
   // Crear usuario
   const createUsuario = async () => {
     try {
-      const res = await fetchAuth("/usuarios", {
+      const res = await fetch("http://localhost:3000/usuarios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        
+        credentials: "include",
         body: JSON.stringify(formData)
       });
       
       if (res.ok) {
-        const data = await res.json();
+        await res.json();
         setSuccess('Usuario creado exitosamente');
         setShowCreateModal(false);
         resetForm();
@@ -210,10 +217,10 @@ function Usuarios() {
   // Actualizar usuario
   const updateUsuario = async () => {
     try {
-      const res = await fetchAuth(`/usuarios/${selectedUsuario.id}`, {
+      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        
+        credentials: "include",
         body: JSON.stringify({
           usuario: formData.usuario,
           email: formData.email
@@ -221,6 +228,7 @@ function Usuarios() {
       });
       
       if (res.ok) {
+        await res.json();
         setSuccess('Usuario actualizado exitosamente');
         setShowEditModal(false);
         resetForm();
@@ -238,12 +246,13 @@ function Usuarios() {
   // Eliminar usuario
   const deleteUsuario = async () => {
     try {
-      const res = await fetchAuth(`/usuarios/${selectedUsuario.id}`, {
+      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}`, {
         method: "DELETE",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
+        await res.json();
         setSuccess('Usuario eliminado exitosamente');
         setShowDeleteModal(false);
         refreshData();
@@ -266,10 +275,10 @@ function Usuarios() {
         return;
       }
 
-      const res = await fetchAuth(`/usuarios/${selectedUsuario.id}/cambiar-contrasena`, {
+      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}/cambiar-contrasena`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        
+        credentials: "include",
         body: JSON.stringify({
           contrasenaActual: passwordData.contrasenaActual,
           contrasenaNueva: passwordData.contrasenaNueva
@@ -293,9 +302,9 @@ function Usuarios() {
   // Promover usuario a administrador
   const promoverAdministrador = async () => {
     try {
-      const res = await fetchAuth(`/usuarios/${selectedUsuario.id}/promover-admin`, {
+      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}/promover-admin`, {
         method: "PUT",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
@@ -315,9 +324,9 @@ function Usuarios() {
   // Degradar administrador a usuario normal
   const degradarAdministrador = async () => {
     try {
-      const res = await fetchAuth(`/usuarios/${selectedUsuario.id}/degradar-admin`, {
+      const res = await fetch(`http://localhost:3000/usuarios/${selectedUsuario.id}/degradar-admin`, {
         method: "PUT",
-        
+        credentials: "include",
       });
       
       if (res.ok) {
@@ -414,30 +423,14 @@ function Usuarios() {
     }
   };
 
-  // Manejar cambio de filas por página
-  const handleRowsPerPageChange = (event) => {
-    const newRowsPerPage = parseInt(event.target.value);
-    setRowsPerPage(newRowsPerPage);
-    setPage(1);
-    if (isSearching) {
-      searchUsuarios(1);
-    } else {
-      fetchUsuarios(1, newRowsPerPage);
-    }
-  };
+  // NOTE: handleRowsPerPageChange and clearSearch removed because unused
 
-  // Limpiar búsqueda
-  const clearSearch = () => {
-    setSearchTerm('');
-    setIsSearching(false);
-    setPage(1);
-    fetchUsuarios(1, rowsPerPage);
-  };
+  const fetchEmpleadosDisponiblesCb = useCallback(fetchEmpleadosDisponibles, []);
 
   useEffect(() => {
     fetchUsuarios();
-    fetchEmpleadosDisponibles();
-  }, []);
+    fetchEmpleadosDisponiblesCb();
+  }, [fetchUsuarios, fetchEmpleadosDisponiblesCb]);
 
   // Refrescar datos después de operaciones CRUD
   const refreshData = () => {
@@ -449,91 +442,63 @@ function Usuarios() {
   };
 
   return (
-  <Box sx={{ px: { xs: 1, sm: 2, md: 4 }, py: { xs: 1, sm: 2 }, width: '100%', maxWidth: '1200px', mx: 'auto' }}>
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          justifyContent: "space-between",
-          alignItems: { xs: "stretch", sm: "center" },
-          gap: 2,
-          mb: 3
-        }}
-      >
-        <Typography variant="h5">Gestión de Usuarios</Typography>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
+      {/* Header responsive */}
+      <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'stretch' : 'center', gap: 2, mb: 3 }}>
+        <Typography variant={isMobile ? 'h5' : 'h4'}>Gestión de Usuarios</Typography>
         <Button
           variant="contained"
           startIcon={<Add />}
           sx={{ backgroundColor: "#ff8c42" }}
           onClick={() => setShowCreateModal(true)}
+          fullWidth={isMobile}
+          size={isMobile ? 'small' : 'medium'}
         >
           Nuevo Usuario
         </Button>
       </Box>
 
-      {/* Controles de búsqueda y paginación */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8} sm={7}>
+      {/* Controles de búsqueda y paginación (responsive) */}
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={4}>
           <TextField
             fullWidth
-            size="small"
             placeholder="Buscar usuario por nombre, email, CI o nombre del empleado..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && searchUsuarios()}
+            size={isMobile ? 'small' : 'medium'}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <Search />
                 </InputAdornment>
               ),
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => searchUsuarios(1)}
-                      sx={{ backgroundColor: "#ff8c42" }}
-                    >
-                      Buscar
-                    </Button>
-                    {isSearching && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={clearSearch}
-                      >
-                        Limpiar
-                      </Button>
-                    )}
-                  </Box>
-                </InputAdornment>
-              ),
             }}
-            sx={{ mb: { xs: 1, sm: 0 } }}
           />
         </Grid>
-  <Grid item xs={12} md={4} sm={5}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Filas por página</InputLabel>
-            <Select
-              value={rowsPerPage}
-              label="Filas por página"
-              onChange={handleRowsPerPageChange}
-            >
-              <MenuItem value={5}>5</MenuItem>
-              <MenuItem value={10}>10</MenuItem>
-              <MenuItem value={25}>25</MenuItem>
-              <MenuItem value={50}>50</MenuItem>
-            </Select>
-          </FormControl>
+        <Grid item xs={12} sm={6} md={4}>
+          <TextField
+            fullWidth
+            placeholder="Filtrar"
+            size={isMobile ? 'small' : 'medium'}
+          />
+        </Grid>
+        <Grid item xs={12} sm={12} md={4}>
+          <Button
+            variant="contained"
+            fullWidth={isMobile}
+            size={isMobile ? 'small' : 'medium'}
+            onClick={() => searchUsuarios(1)}
+            sx={{ backgroundColor: "#ff8c42" }}
+          >
+            Buscar
+          </Button>
         </Grid>
       </Grid>
 
       {/* Información de resultados */}
-  <Box sx={{ mb: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1 }}>
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="body2" color="text.secondary">
           {isSearching ? (
             `Mostrando ${usuarios.length} de ${totalUsuarios} resultados para "${searchTerm}"`
@@ -547,157 +512,106 @@ function Usuarios() {
             page={page}
             onChange={handlePageChange}
             color="primary"
-            size="small"
+            size={isMobile ? 'small' : 'medium'}
           />
         )}
       </Box>
 
-      {/* Tabla de usuarios */}
-  <Paper sx={{ width: "100%", overflowX: "auto", boxShadow: { xs: 0, sm: 1 } }}>
+      {/* Contenido principal: Cards en móvil, Tabla en desktop */}
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: { xs: 340, sm: 440 } }}>
-            <Table size="small" stickyHeader>
-              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
-                <TableRow>
-                  <TableCell sx={{ minWidth: 120 }}>Usuario</TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Empleado</TableCell>
-                  <TableCell sx={{ minWidth: 120 }}>Email</TableCell>
-                  <TableCell sx={{ minWidth: 90 }}>Tipo</TableCell>
-                  <TableCell sx={{ minWidth: 90 }}>Actividad</TableCell>
-                  <TableCell sx={{ minWidth: 110 }}>Acciones</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <Box sx={{ mt: 2 }}>
+            {isMobile ? (
+              <Box>
                 {usuarios.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No se encontraron usuarios
-                    </TableCell>
-                  </TableRow>
+                  <Typography align="center">No se encontraron usuarios</Typography>
                 ) : (
                   usuarios.map((usuario) => (
-                    <TableRow key={usuario.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {usuario.administrador ? (
-                            <AdminPanelSettings color="warning" />
-                          ) : (
-                            <Person color="action" />
-                          )}
-                          <Typography variant="body2" fontWeight="bold">
-                            {usuario.usuario}
-                          </Typography>
+                    <Card key={usuario.id} sx={{ mb: 2, p: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography variant="h6" gutterBottom>{usuario.usuario || usuario.empleado?.nombre}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Empleado:</strong> {usuario.empleado?.nombre}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Email:</strong> {usuario.email || 'Sin email'}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Rol:</strong> {usuario.administrador ? 'Administrador' : 'Usuario'}</Typography>
+                          <Typography variant="body2" color="text.secondary"><strong>Actividad:</strong> {usuario._count?.bitacora || 0} registros</Typography>
                         </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          <Typography variant="body2" fontWeight="medium">
-                            {usuario.empleado.nombre}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            CI: {usuario.empleado.ci}
-                          </Typography>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <IconButton size="small" color="primary" onClick={() => openEditModal(usuario)} title="Editar"><Edit /></IconButton>
+                          <IconButton size="small" color="error" onClick={() => openDeleteModal(usuario)} title="Eliminar"><Delete /></IconButton>
                         </Box>
-                      </TableCell>
-                      <TableCell>
-                        {usuario.email ? (
-                          <Typography variant="body2">{usuario.email}</Typography>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary" style={{ fontStyle: 'italic' }}>
-                            Sin email
-                          </Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {usuario.administrador ? (
-                          <Chip 
-                            label="Administrador" 
-                            color="warning" 
-                            size="small"
-                            icon={<AdminPanelSettings />}
-                          />
-                        ) : (
-                          <Chip 
-                            label="Usuario" 
-                            color="primary" 
-                            size="small" 
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {usuario._count?.bitacora || 0} registros
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                          <IconButton 
-                            color="info" 
-                            size="small"
-                            onClick={() => openViewModal(usuario)}
-                            title="Ver detalles"
-                          >
-                            <Visibility />
-                          </IconButton>
-                          <IconButton 
-                            color="primary" 
-                            size="small"
-                            onClick={() => openEditModal(usuario)}
-                            title="Editar"
-                          >
-                            <Edit />
-                          </IconButton>
-                          <IconButton 
-                            color="secondary" 
-                            size="small"
-                            onClick={() => openPasswordModal(usuario)}
-                            title="Cambiar contraseña"
-                          >
-                            <Lock />
-                          </IconButton>
-                          {!usuario.administrador ? (
-                            <IconButton 
-                              color="success" 
-                              size="small"
-                              onClick={() => openPromoteModal(usuario)}
-                              title="Promover a administrador"
-                            >
-                              <ArrowUpward />
-                            </IconButton>
-                          ) : (
-                            <IconButton 
-                              color="warning" 
-                              size="small"
-                              onClick={() => openDemoteModal(usuario)}
-                              title="Degradar de administrador"
-                            >
-                              <ArrowDownward />
-                            </IconButton>
-                          )}
-                          {!usuario.administrador && (
-                            <IconButton 
-                              color="error" 
-                              size="small"
-                              onClick={() => openDeleteModal(usuario)}
-                              title="Eliminar"
-                            >
-                              <Delete />
-                            </IconButton>
-                          )}
-                        </Box>
-                      </TableCell>
-                    </TableRow>
+                      </Box>
+                    </Card>
                   ))
                 )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </Box>
+            ) : (
+              <TableContainer>
+                <Table>
+                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+                    <TableRow>
+                      <TableCell>Usuario</TableCell>
+                      <TableCell>Empleado</TableCell>
+                      <TableCell>Email</TableCell>
+                      <TableCell>Tipo</TableCell>
+                      <TableCell>Actividad</TableCell>
+                      <TableCell>Acciones</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {usuarios.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center">No se encontraron usuarios</TableCell>
+                      </TableRow>
+                    ) : (
+                      usuarios.map((usuario) => (
+                        <TableRow key={usuario.id} hover>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              {usuario.administrador ? (
+                                <AdminPanelSettings color="warning" />
+                              ) : (
+                                <Person color="action" />
+                              )}
+                              <Typography variant="body2" fontWeight="bold">{usuario.usuario}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Box>
+                              <Typography variant="body2" fontWeight="medium">{usuario.empleado.nombre}</Typography>
+                              <Typography variant="caption" color="text.secondary">CI: {usuario.empleado.ci}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>{usuario.email ? (<Typography variant="body2">{usuario.email}</Typography>) : (<Typography variant="body2" color="text.secondary" style={{ fontStyle: 'italic' }}>Sin email</Typography>)}</TableCell>
+                          <TableCell>{usuario.administrador ? (<Chip label="Administrador" color="warning" size="small" icon={<AdminPanelSettings />} />) : (<Chip label="Usuario" color="primary" size="small" />)}</TableCell>
+                          <TableCell><Typography variant="body2" color="text.secondary">{usuario._count?.bitacora || 0} registros</Typography></TableCell>
+                          <TableCell>
+                            <IconButton color="info" size="small" onClick={() => openViewModal(usuario)} title="Ver detalles"><Visibility /></IconButton>
+                            <IconButton color="primary" size="small" onClick={() => openEditModal(usuario)} title="Editar"><Edit /></IconButton>
+                            <IconButton color="secondary" size="small" onClick={() => openPasswordModal(usuario)} title="Cambiar contraseña"><Lock /></IconButton>
+                            {!usuario.administrador ? (
+                              <IconButton color="success" size="small" onClick={() => openPromoteModal(usuario)} title="Promover a administrador"><ArrowUpward /></IconButton>
+                            ) : (
+                              <IconButton color="warning" size="small" onClick={() => openDemoteModal(usuario)} title="Degradar de administrador"><ArrowDownward /></IconButton>
+                            )}
+                            {!usuario.administrador && (
+                              <IconButton color="error" size="small" onClick={() => openDeleteModal(usuario)} title="Eliminar"><Delete /></IconButton>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </Box>
         )}
-        
+
         {/* Paginación inferior */}
         {totalPages > 1 && !loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
@@ -708,8 +622,6 @@ function Usuarios() {
               color="primary"
               showFirstButton
               showLastButton
-              siblingCount={window.innerWidth < 600 ? 0 : 1}
-              size={window.innerWidth < 600 ? 'small' : 'medium'}
             />
           </Box>
         )}
@@ -1097,7 +1009,7 @@ function Usuarios() {
           {success}
         </Alert>
       </Snackbar>
-    </Box>
+    </Container>
   );
 }
 
