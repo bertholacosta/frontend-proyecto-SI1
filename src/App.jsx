@@ -36,11 +36,13 @@ import {
 } from '@mui/icons-material'
 
 // Importar componentes de las páginas
-import Dashboard from './main/dashboard'
-import Clientes from './main/clientes'
-import Empleados from './main/empleados'
-import Usuarios from './main/usuarios'
-import Configuracion from './main/configuracion'
+import Dashboard from './pages/dashboard/dashboard'
+import Clientes from './pages/clientes/clientes'
+import Empleados from './pages/empleados/empleados'
+import Usuarios from './pages/usuarios/usuarios'
+import Configuracion from './pages/configuracion/configuracion'
+import Motos from './pages/motos/motos'
+import Servicios from './pages/servicios/servicios'
 
 import './App.css'
 
@@ -249,8 +251,6 @@ function DashboardPrincipal({ onLogout, userInfo }) {
                 {selectedItem === 'usuarios' && <Usuarios />}
                 {selectedItem === 'motos' && <Motos />}
                 {selectedItem === 'servicios' && <Servicios />}
-                {selectedItem === 'inventario' && <Inventario />}
-                {selectedItem === 'facturas' && <Facturas />}
                 {selectedItem === 'configuracion' && <Configuracion />}
               </Box>
             </Container>
