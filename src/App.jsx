@@ -322,22 +322,38 @@ function App() {
 
   // fetchWithAuth ya está definida globalmente
 
+  // Utilidad para fetch con timeout compatible con navegadores que no soportan AbortSignal.timeout
+  const fetchConTimeout = async (resource, { timeout = 5000, ...options } = {}) => {
+    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+      return fetch(resource, { ...options, signal: AbortSignal.timeout(timeout) });
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      return await fetch(resource, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
   // Función helper para verificar conectividad básica con reintentos
   const verificarConectividad = async () => {
     // Primer intento rápido
     try {
-      const response = await fetch(apiUrl('/health'), {
+      const response = await fetchConTimeout(apiUrl('/health'), {
         method: 'HEAD',
-        signal: AbortSignal.timeout(5000)
+        timeout: 5000
       });
       if (response.ok) return true;
     } catch {}
-    
+  
     // Si falla, intentar con el endpoint de verificación directamente
     try {
-      const response = await fetch(apiUrl('/auth/verificar'), {
+      const response = await fetchConTimeout(apiUrl('/auth/verificar'), {
         method: 'HEAD',
-        signal: AbortSignal.timeout(10000) // Más tiempo para servidores dormidos
+        timeout: 10000 // Más tiempo para servidores dormidos
       });
       return response.status < 500; // Cualquier respuesta que no sea error de servidor
     } catch {
