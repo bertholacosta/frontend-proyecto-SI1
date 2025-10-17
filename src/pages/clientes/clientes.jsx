@@ -33,6 +33,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState, useCallback } from "react";
+import { API_BASE } from "../../utils/apiConfig";
 
 function Clientes() {
   const theme = useTheme();
@@ -82,7 +83,7 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/clientes?${params}`, {
+  const res = await fetch(`${API_BASE}/clientes?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -124,7 +125,7 @@ function Clientes() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/clientes/search?${params}`, {
+  const res = await fetch(`${API_BASE}/clientes/search?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -149,7 +150,7 @@ function Clientes() {
   // Crear cliente
   const createCliente = async () => {
     try {
-      const res = await fetch("http://localhost:3000/clientes", {
+  const res = await fetch(`${API_BASE}/clientes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -175,7 +176,7 @@ function Clientes() {
   // Actualizar cliente
   const updateCliente = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+  const res = await fetch(`${API_BASE}/clientes/${selectedCliente.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -204,7 +205,7 @@ function Clientes() {
   // Eliminar cliente
   const deleteCliente = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/clientes/${selectedCliente.ci}`, {
+  const res = await fetch(`${API_BASE}/clientes/${selectedCliente.ci}`, {
         method: "DELETE",
         credentials: "include",
       });

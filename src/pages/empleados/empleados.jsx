@@ -33,6 +33,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState, useCallback } from "react";
+import { API_BASE } from "../../utils/apiConfig";
 
 function Empleados() {
   const theme = useTheme();
@@ -82,7 +83,7 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/empleados?${params}`, {
+  const res = await fetch(`${API_BASE}/empleados?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -124,7 +125,7 @@ function Empleados() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/empleados/search?${params}`, {
+  const res = await fetch(`${API_BASE}/empleados/search?${params}`, {
         method: "GET",
         credentials: "include",
       });
@@ -149,7 +150,7 @@ function Empleados() {
   // Crear empleado
   const createEmpleado = async () => {
     try {
-      const res = await fetch("http://localhost:3000/empleados", {
+  const res = await fetch(`${API_BASE}/empleados`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -175,7 +176,7 @@ function Empleados() {
   // Actualizar empleado
   const updateEmpleado = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
+  const res = await fetch(`${API_BASE}/empleados/${selectedEmpleado.ci}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -206,7 +207,7 @@ function Empleados() {
   // Eliminar empleado
   const deleteEmpleado = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/empleados/${selectedEmpleado.ci}`, {
+  const res = await fetch(`${API_BASE}/empleados/${selectedEmpleado.ci}`, {
         method: "DELETE",
         credentials: "include",
       });

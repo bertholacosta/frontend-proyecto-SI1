@@ -2,6 +2,7 @@ import { Box, Typography, Grid, Card, CardContent, CardActions, Button, Circular
 import { useTheme } from '@mui/material/styles'
 import { TrendingUp, People, DirectionsBike, Build, Inventory, Receipt } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
+import { API_BASE } from '../../utils/apiConfig'
 
 function Dashboard() {
   const [stats, setStats] = useState([
@@ -22,7 +23,7 @@ function Dashboard() {
     const fetchStats = async () => {
       try {
         // Obtener total de clientes
-        const clientesRes = await fetch('http://localhost:3000/clientes?page=1&limit=1', {
+  const clientesRes = await fetch(`${API_BASE}/clientes?page=1&limit=1`, {
           method: 'GET',
           credentials: 'include',
         })

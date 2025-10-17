@@ -5,6 +5,7 @@ import {
   MenuItem, Select, InputLabel, FormControl, Pagination, Stack, Alert
 } from '@mui/material';
 import { Delete as DeleteIcon, FilterAlt as FilterIcon, CleaningServices as ClearIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { API_BASE } from '../../utils/apiConfig';
 
 function formatDateTime(iso) {
   try {
@@ -46,7 +47,7 @@ export default function BitacoraPage() {
 
   const fetchUsuarios = async () => {
     try {
-      const res = await fetch('http://localhost:3000/bitacora/usuarios', {
+  const res = await fetch(`${API_BASE}/bitacora/usuarios`, {
         credentials: 'include'
       });
       if (res.ok) {
@@ -64,7 +65,7 @@ export default function BitacoraPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`http://localhost:3000/bitacora?${params}`, { credentials: 'include' });
+  const res = await fetch(`${API_BASE}/bitacora?${params}`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setRows(data.data || []);
@@ -99,7 +100,7 @@ export default function BitacoraPage() {
   const handleDelete = async (id) => {
     if (!window.confirm('¿Eliminar este registro de la bitácora?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/bitacora/${id}`, {
+  const res = await fetch(`${API_BASE}/bitacora/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -118,7 +119,7 @@ export default function BitacoraPage() {
     }
     if (!window.confirm(`¿Eliminar todos los registros anteriores a ${from}? Esta acción no se puede deshacer.`)) return;
     try {
-      const res = await fetch(`http://localhost:3000/bitacora?before=${encodeURIComponent(from)}`, {
+  const res = await fetch(`${API_BASE}/bitacora?before=${encodeURIComponent(from)}`, {
         method: 'DELETE',
         credentials: 'include'
       });

@@ -33,6 +33,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState, useCallback } from "react";
+import { API_BASE } from "../../utils/apiConfig";
 
 function Diagnosticos() {
   const theme = useTheme();
@@ -83,7 +84,7 @@ function Diagnosticos() {
         sortBy,
         sortOrder
       });
-      const res = await fetch(`http://localhost:3000/diagnosticos?${params}`, { method: "GET", credentials: "include" });
+  const res = await fetch(`${API_BASE}/diagnosticos?${params}`, { method: "GET", credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setItems(data.diagnosticos || []);
@@ -120,7 +121,7 @@ function Diagnosticos() {
         sortBy,
         sortOrder
       });
-      const res = await fetch(`http://localhost:3000/diagnosticos/search?${params}`, { method: "GET", credentials: "include" });
+  const res = await fetch(`${API_BASE}/diagnosticos/search?${params}`, { method: "GET", credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         setItems(data.diagnosticos || []);
@@ -146,7 +147,7 @@ function Diagnosticos() {
         empleado_ci: Number(formData.empleado_ci),
         detalles: formData.detalles.filter((d) => d.descripcion && d.descripcion.trim().length > 0)
       };
-      const res = await fetch("http://localhost:3000/diagnosticos", {
+  const res = await fetch(`${API_BASE}/diagnosticos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -178,7 +179,7 @@ function Diagnosticos() {
         empleado_ci: formData.empleado_ci ? Number(formData.empleado_ci) : undefined,
         detalles: formData.detalles
       };
-      const res = await fetch(`http://localhost:3000/diagnosticos/${selected.nro}`, {
+  const res = await fetch(`${API_BASE}/diagnosticos/${selected.nro}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -202,7 +203,7 @@ function Diagnosticos() {
   const deleteItem = async () => {
     if (!selected) return;
     try {
-      const res = await fetch(`http://localhost:3000/diagnosticos/${selected.nro}`, { method: "DELETE", credentials: "include" });
+  const res = await fetch(`${API_BASE}/diagnosticos/${selected.nro}`, { method: "DELETE", credentials: "include" });
       if (res.ok) {
         setSuccess("Diagnóstico eliminado");
         setShowDeleteModal(false);

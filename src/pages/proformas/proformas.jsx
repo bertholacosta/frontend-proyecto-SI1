@@ -5,6 +5,7 @@ import {
   Pagination, Alert
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { API_BASE } from '../../utils/apiConfig';
 
 function toLocalDate(d) {
   try { return new Date(d).toISOString().substring(0,10); } catch { return ''; }
@@ -95,7 +96,7 @@ export default function ProformasPage() {
   const fetchList = async () => {
     setLoading(true); setError('');
     try {
-      const url = q || estado || from || to ? `http://localhost:3000/proformas/search?${params}` : `http://localhost:3000/proformas?${params}`;
+  const url = q || estado || from || to ? `${API_BASE}/proformas/search?${params}` : `${API_BASE}/proformas?${params}`;
       const res = await fetch(url, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -117,7 +118,7 @@ export default function ProformasPage() {
   const openCreate = () => { setEditing(null); setForm({ fecha: toLocalDate(new Date()), cliente_ci: '', diagnostico_id: '', estado: 'PENDIENTE' }); setDetalles([]); setOpen(true); };
   const openEdit = async (row) => {
     try {
-      const res = await fetch(`http://localhost:3000/proformas/${row.id}`, { credentials: 'include' });
+  const res = await fetch(`${API_BASE}/proformas/${row.id}`, { credentials: 'include' });
       const data = await res.json();
       if (res.ok) {
         setEditing(row.id);
@@ -131,7 +132,7 @@ export default function ProformasPage() {
   const save = async () => {
     try {
       const payload = { ...form, cliente_ci: Number(form.cliente_ci) || undefined, diagnostico_id: form.diagnostico_id ? String(form.diagnostico_id) : undefined, fecha: form.fecha, estado: form.estado, detalles };
-      const res = await fetch(`http://localhost:3000/proformas${editing ? `/${editing}` : ''}`, {
+  const res = await fetch(`${API_BASE}/proformas${editing ? `/${editing}` : ''}`, {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -149,7 +150,7 @@ export default function ProformasPage() {
   const remove = async (row) => {
     if (!window.confirm('¿Eliminar esta proforma?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/proformas/${row.id}`, { method: 'DELETE', credentials: 'include' });
+  const res = await fetch(`${API_BASE}/proformas/${row.id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) fetchList();
     } catch (e) { console.error(e); }
   };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_BASE } from "../../utils/apiConfig";
 
 function NuevoCliente({ show, onClose }) {
   const [cliente, setCliente] = useState({
@@ -14,7 +15,7 @@ function NuevoCliente({ show, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await fetch("http://localhost:3000/registro/cliente", {
+  await fetch(`${API_BASE}/registro/cliente`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json", // importante

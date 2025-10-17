@@ -50,6 +50,7 @@ import Proformas from './pages/proformas/proformas'
 import Servicios from './pages/servicios/servicios'
 
 import './App.css'
+import { API_BASE } from './utils/apiConfig'
 
 // Tema personalizado con colores naranja y negro
 const theme = createTheme({
@@ -295,7 +296,7 @@ function App() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos timeout
         
-        const res = await fetch("http://localhost:3000/auth/verificar", {
+  const res = await fetch(`${API_BASE}/auth/verificar`, {
           method: "GET",
           credentials: "include", // Importante para enviar cookies
           signal: controller.signal
@@ -354,7 +355,7 @@ function App() {
   // Función para cerrar sesión
   const handleLogout = async () => {
     try{
-      await fetch("http://localhost:3000/auth/logout", {
+  await fetch(`${API_BASE}/auth/logout`, {
         method: "POST",
         credentials: "include", // MUY IMPORTANTE para cookies
       });
@@ -410,7 +411,7 @@ function App() {
     
     try {
       // Validación de credenciales
-      const res = await fetch("http://localhost:3000/auth/login", {
+  const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // MUY IMPORTANTE para cookies

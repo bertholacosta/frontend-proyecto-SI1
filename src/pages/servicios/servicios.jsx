@@ -5,6 +5,7 @@ import {
   Pagination, Alert
 } from '@mui/material';
 import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Search as SearchIcon } from '@mui/icons-material';
+import { API_BASE } from '../../utils/apiConfig';
 
 export default function ServiciosPage() {
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ export default function ServiciosPage() {
 
   const fetchCategorias = async () => {
     try {
-      const res = await fetch('http://localhost:3000/servicios/categorias', { credentials: 'include' });
+  const res = await fetch(`${API_BASE}/servicios/categorias`, { credentials: 'include' });
       if (res.ok) setCategorias(await res.json());
     } catch (e) { console.error(e); }
   };
@@ -38,7 +39,7 @@ export default function ServiciosPage() {
   const fetchList = async () => {
     setLoading(true); setError('');
     try {
-      const url = q ? `http://localhost:3000/servicios/search?${params}` : `http://localhost:3000/servicios?${params}`;
+  const url = q ? `${API_BASE}/servicios/search?${params}` : `${API_BASE}/servicios?${params}`;
       const res = await fetch(url, { credentials: 'include' });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
@@ -60,7 +61,7 @@ export default function ServiciosPage() {
   const save = async () => {
     try {
       const payload = { ...form, categoria_id: Number(form.categoria_id) };
-      const res = await fetch(`http://localhost:3000/servicios${editing ? `/${editing}` : ''}`, {
+  const res = await fetch(`${API_BASE}/servicios${editing ? `/${editing}` : ''}`, {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -75,7 +76,7 @@ export default function ServiciosPage() {
   const remove = async (row) => {
     if (!window.confirm('¿Eliminar este servicio?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/servicios/${row.id}`, { method: 'DELETE', credentials: 'include' });
+  const res = await fetch(`${API_BASE}/servicios/${row.id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) fetchList();
       else {
         const data = await res.json().catch(() => ({}));

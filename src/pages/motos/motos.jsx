@@ -32,6 +32,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import { Add, Edit, Delete, Search, Visibility } from "@mui/icons-material";
 import { useEffect, useState, useCallback } from "react";
+import { API_BASE } from "../../utils/apiConfig";
 
 function Motos() {
   const theme = useTheme();
@@ -69,7 +70,7 @@ function Motos() {
 
   const fetchMarcas = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:3000/motos/marcas", {
+  const res = await fetch(`${API_BASE}/motos/marcas`, {
         method: "GET",
         credentials: "include"
       });
@@ -99,7 +100,7 @@ function Motos() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/motos?${params}`, {
+  const res = await fetch(`${API_BASE}/motos?${params}`, {
         method: "GET",
         credentials: "include"
       });
@@ -140,7 +141,7 @@ function Motos() {
         sortOrder
       });
 
-      const res = await fetch(`http://localhost:3000/motos/search?${params}`, {
+  const res = await fetch(`${API_BASE}/motos/search?${params}`, {
         method: "GET",
         credentials: "include"
       });
@@ -172,7 +173,7 @@ function Motos() {
         marca_id: Number(formData.marca_id)
       };
 
-      const res = await fetch("http://localhost:3000/motos", {
+  const res = await fetch(`${API_BASE}/motos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -208,7 +209,7 @@ function Motos() {
         marca_id: Number(formData.marca_id)
       };
 
-      const res = await fetch(`http://localhost:3000/motos/${selectedMoto.placa}`, {
+  const res = await fetch(`${API_BASE}/motos/${selectedMoto.placa}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -236,7 +237,7 @@ function Motos() {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/motos/${selectedMoto.placa}`, {
+  const res = await fetch(`${API_BASE}/motos/${selectedMoto.placa}`, {
         method: "DELETE",
         credentials: "include"
       });
