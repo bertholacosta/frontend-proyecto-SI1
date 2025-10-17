@@ -294,7 +294,7 @@ function App() {
         
         // Crear un timeout para la verificación (más agresivo)
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos timeout
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // ampliar timeout para servidores remotos
         
   const res = await fetch(`${API_BASE}/auth/verificar`, {
           method: "GET",
