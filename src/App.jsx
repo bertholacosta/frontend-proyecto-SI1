@@ -20,7 +20,9 @@ import {
   Toolbar,
   IconButton,
   Divider
+  ,useMediaQuery
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
@@ -40,36 +42,14 @@ import Dashboard from './pages/dashboard/dashboard'
 import Clientes from './pages/clientes/clientes'
 import Empleados from './pages/empleados/empleados'
 import Usuarios from './pages/usuarios/usuarios'
-import Configuracion from './pages/configuracion/configuracion'
 import Motos from './pages/motos/motos'
+import Configuracion from './pages/configuracion/configuracion'
+import Diagnosticos from './pages/diagnosticos/diagnosticos'
+import Bitacora from './pages/bitacora/bitacora'
+import Proformas from './pages/proformas/proformas'
 import Servicios from './pages/servicios/servicios'
 
 import './App.css'
-
-// Función helper para leer sesión desde localStorage (global)
-const leerSesionLocal = () => {
-  try {
-    const sessionData = localStorage.getItem('userSession');
-    if (!sessionData) return null;
-    
-    const parsedData = JSON.parse(sessionData);
-    
-    // Verificar si la sesión ha expirado
-    if (Date.now() > parsedData.expiresAt) {
-      localStorage.removeItem('userSession');
-      return null;
-    }
-    
-    return parsedData;
-  } catch (error) {
-    localStorage.removeItem('userSession');
-    return null;
-  }
-};
-
-// Centralizar URLs y fetch
-import { apiUrl } from './utils/apiConfig';
-import { fetchAuth } from './utils/fetchAuth';
 
 // Tema personalizado con colores naranja y negro
 const theme = createTheme({
@@ -110,7 +90,11 @@ function DashboardPrincipal({ onLogout, userInfo }) {
     { id: 'clientes', label: 'Clientes', icon: <PeopleIcon />, adminOnly: false },
     { id: 'empleados', label: 'Empleados', icon: <BadgeIcon />, adminOnly: true },
     { id: 'usuarios', label: 'Usuarios', icon: <ManageAccountsIcon />, adminOnly: true },
-   // { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
+  { id: 'motos', label: 'Motos', icon: <BikeIcon />, adminOnly: false },
+  { id: 'diagnosticos', label: 'Diagnósticos', icon: <BuildIcon />, adminOnly: false },
+  { id: 'proformas', label: 'Proformas', icon: <ReceiptIcon />, adminOnly: false },
+  { id: 'servicios', label: 'Servicios', icon: <BuildIcon />, adminOnly: true },
+  { id: 'bitacora', label: 'Bitácora', icon: <ReceiptIcon />, adminOnly: true },
    // { id: 'servicios', label: 'Servicios', icon: <BuildIcon />, adminOnly: false },
    // { id: 'inventario', label: 'Inventario', icon: <InventoryIcon />, adminOnly: false },
     //{ id: 'facturas', label: 'Facturas', icon: <ReceiptIcon />, adminOnly: false },
@@ -127,23 +111,22 @@ function DashboardPrincipal({ onLogout, userInfo }) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', height: '100vh', flexDirection: { xs: 'column', md: 'row' } }}>
+      <Box sx={{ display: 'flex', height: '100vh' }}>
         {/* Menú lateral */}
         <Drawer
           variant="persistent"
           anchor="left"
           open={drawerOpen}
           sx={{
-            width: { xs: drawerOpen ? 220 : 0, sm: 250 },
+            width: drawerOpen ? 250 : 0,
             flexShrink: 0,
             '& .MuiDrawer-paper': {
-              width: { xs: 220, sm: 250 },
+              width: 250,
               boxSizing: 'border-box',
               backgroundColor: '#1a1a1a',
               borderRight: '2px solid #ff8c42',
               overflowX: 'hidden',
             },
-            display: { xs: 'block', md: 'block' }
           }}
         >
           <Box sx={{ p: 2, backgroundColor: '#ff8c42' }}>
@@ -201,7 +184,7 @@ function DashboardPrincipal({ onLogout, userInfo }) {
         </Drawer>
 
         {/* Contenido principal */}
-  <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           <AppBar position="static" sx={{ backgroundColor: '#2a2a2a' }}>
             <Toolbar>
               <IconButton
@@ -235,22 +218,28 @@ function DashboardPrincipal({ onLogout, userInfo }) {
             </Toolbar>
           </AppBar>
           
-          <Box sx={{ flexGrow: 1, p: { xs: 1, sm: 2, md: 3 }, backgroundColor: '#f5f5f5', minWidth: 0 }}>
-            <Container maxWidth="xl" sx={{ px: { xs: 0.5, sm: 2 } }}>
-              <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '2.2rem' }, textAlign: { xs: 'center', sm: 'left' } }}>
+          <Box sx={{ flexGrow: 1, p: 3, backgroundColor: '#f5f5f5' }}>
+            <Container maxWidth="xl">
+              <Typography variant="h4" gutterBottom>
                 Bienvenido al Sistema de Gestión
               </Typography>
-              <Typography variant="body1" color="text.secondary" paragraph sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+              <Typography variant="body1" color="text.secondary" paragraph>
                 Panel de control para Multiservicio Renacer - Taller de Motos
               </Typography>
+              
               {/* Contenido dinámico según la sección seleccionada */}
-              <Box sx={{ mt: { xs: 2, sm: 4 } }}>
+              <Box sx={{ mt: 4 }}>
                 {selectedItem === 'dashboard' && <Dashboard />}
                 {selectedItem === 'clientes' && <Clientes />}
                 {selectedItem === 'empleados' && <Empleados />}
                 {selectedItem === 'usuarios' && <Usuarios />}
                 {selectedItem === 'motos' && <Motos />}
+                {selectedItem === 'diagnosticos' && <Diagnosticos />}
+                {selectedItem === 'proformas' && <Proformas />}
                 {selectedItem === 'servicios' && <Servicios />}
+                {selectedItem === 'bitacora' && <Bitacora />}
+                {selectedItem === 'inventario' && <Inventario />}
+                {selectedItem === 'facturas' && <Facturas />}
                 {selectedItem === 'configuracion' && <Configuracion />}
               </Box>
             </Container>
@@ -262,9 +251,15 @@ function DashboardPrincipal({ onLogout, userInfo }) {
 }
 
 function App() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // para login responsive
   const [usuario, setUsuario] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [warning, setWarning] = useState('')
+  const [bloqueado, setBloqueado] = useState(false)
+  const [intentosRestantes, setIntentosRestantes] = useState(5)
+  const [tiempoBloqueo, setTiempoBloqueo] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isLoading, setIsLoading] = useState(true) // Para mostrar loading mientras verifica sesión
   const [userInfo, setUserInfo] = useState({
@@ -274,92 +269,18 @@ function App() {
     empleado_ci: null
   })
 
-  // Detectar si estamos en producción (Vercel) o desarrollo (localhost)
-  const isProduction = window.location.hostname !== 'localhost'
-  console.log('Entorno detectado:', isProduction ? 'Producción (Vercel)' : 'Desarrollo (localhost)')
+  // Efecto para actualizar el tiempo de bloqueo cada minuto
+  useEffect(() => {
+    if (bloqueado && tiempoBloqueo) {
+      const interval = setInterval(() => {
+        // Aquí podrías hacer una verificación del estado en el servidor
+        // o simplemente decrementar el tiempo localmente
+        console.log('Usuario bloqueado, actualizando estado...');
+      }, 60000); // Cada minuto
 
-  // Función para guardar sesión en localStorage como respaldo
-  const guardarSesionLocal = (userData) => {
-    try {
-      const sessionData = {
-        ...userData,
-        timestamp: Date.now(),
-        expiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 horas
-      };
-      localStorage.setItem('userSession', JSON.stringify(sessionData));
-      console.log('Sesión guardada en localStorage');
-    } catch (error) {
-      console.warn('Error al guardar sesión local:', error);
+      return () => clearInterval(interval);
     }
-  };
-
-  // Usar función global de lectura con logs detallados
-  const leerSesionLocalConLogs = () => {
-    const sesion = leerSesionLocal();
-    if (sesion) {
-      console.log('Sesión leída de localStorage:', {
-        usuario: sesion.usuario,
-        hasToken: !!sesion.token,
-        created: new Date(sesion.timestamp).toLocaleString(),
-        expires: new Date(sesion.expiresAt).toLocaleString(),
-        isExpired: Date.now() > sesion.expiresAt
-      });
-    } else {
-      console.log('No hay datos de sesión en localStorage');
-    }
-    return sesion;
-  };
-
-  // Función para limpiar sesión local
-  const limpiarSesionLocal = () => {
-    try {
-      localStorage.removeItem('userSession');
-      console.log('Sesión local limpiada');
-    } catch (error) {
-      console.warn('Error al limpiar sesión local:', error);
-    }
-  };
-
-  // fetchWithAuth ya está definida globalmente
-
-  // Utilidad para fetch con timeout compatible con navegadores que no soportan AbortSignal.timeout
-  const fetchConTimeout = async (resource, { timeout = 5000, ...options } = {}) => {
-    if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
-      return fetch(resource, { ...options, signal: AbortSignal.timeout(timeout) });
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-    try {
-      return await fetch(resource, { ...options, signal: controller.signal });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  };
-
-  // Función helper para verificar conectividad básica con reintentos
-  const verificarConectividad = async () => {
-    // Primer intento rápido
-    try {
-      const response = await fetchConTimeout(apiUrl('/health'), {
-        method: 'HEAD',
-        timeout: 5000
-      });
-      if (response.ok) return true;
-    } catch {}
-  
-    // Si falla, intentar con el endpoint de verificación directamente
-    try {
-      const response = await fetchConTimeout(apiUrl('/auth/verificar'), {
-        method: 'HEAD',
-        timeout: 10000 // Más tiempo para servidores dormidos
-      });
-      return response.status < 500; // Cualquier respuesta que no sea error de servidor
-    } catch {
-      return false;
-    }
-  };
+  }, [bloqueado, tiempoBloqueo]);
 
   // Verificar sesión al cargar la página
   useEffect(() => {
@@ -367,79 +288,23 @@ function App() {
       try {
         console.log('Iniciando verificación de sesión...');
         
-        // Verificar si hay una sesión guardada localmente
-        const sesionLocal = leerSesionLocalConLogs();
-        console.log('Estado de sesión local:', sesionLocal ? 'Encontrada' : 'No encontrada');
-        
-        if (sesionLocal) {
-          console.log('Datos de sesión local:', {
-            usuario: sesionLocal.usuario,
-            hasToken: !!sesionLocal.token,
-            expiresAt: new Date(sesionLocal.expiresAt).toLocaleString(),
-            timeLeft: Math.round((sesionLocal.expiresAt - Date.now()) / (1000 * 60)) + ' minutos'
-          });
-          
-          // Si hay una sesión local válida, usarla directamente (tanto desarrollo como producción)
-          // Solo verificar con servidor si no hay token (depende de cookies)
-          if (sesionLocal.token || !isProduction) {
-            console.log(isProduction ? 'Producción: Usando sesión local con token' : 'Desarrollo: Usando sesión local directamente');
-            setIsLoggedIn(true);
-            setUsuario(sesionLocal.usuario);
-            setUserInfo({
-              usuario: sesionLocal.usuario,
-              email: sesionLocal.email,
-              isAdmin: sesionLocal.isAdmin,
-              empleado_ci: sesionLocal.empleado_ci
-            });
-            setIsLoading(false);
-            return;
-          }
-          
-          console.log('Producción: Sesión local sin token, verificando con servidor...');
-        }
-        
-        // Si no hay sesión local, verificar conectividad con servidor
-        console.log('No hay sesión local, verificando con servidor...');
-        const tieneConexion = await verificarConectividad();
-        if (!tieneConexion) {
-          console.log('Servidor no disponible - continuando sin sesión');
-          setIsLoading(false);
-          return;
-        } else {
-          console.log('Servidor disponible, procediendo con verificación de sesión');
-        }
-        
         // Las cookies httpOnly no son accesibles desde JavaScript
         // Siempre intentar verificar con el servidor
         
-        // Crear un timeout para la verificación (ajustado según entorno)
+        // Crear un timeout para la verificación (más agresivo)
         const controller = new AbortController();
-        const timeoutMs = isProduction ? 15000 : 30000; // 15s en producción, 30s en desarrollo
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+        const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 segundos timeout
         
-        // Intentar verificar con cookies primero, luego con token si hay uno guardado
-        const sesionLocalVerificacion = leerSesionLocal();
-        const headers = { "Content-Type": "application/json" };
-        
-        // Si hay un token guardado, usarlo en la cabecera Authorization
-        if (sesionLocalVerificacion && sesionLocalVerificacion.token) {
-          headers['Authorization'] = `Bearer ${sesionLocalVerificacion.token}`;
-        }
-        
-        const res = await fetch(apiUrl("/auth/verificar"), {
+        const res = await fetch("http://localhost:3000/auth/verificar", {
           method: "GET",
-          headers: headers,
+          credentials: "include", // Importante para enviar cookies
           signal: controller.signal
         });
         
         clearTimeout(timeoutId);
         
-        console.log('Respuesta del servidor:', res.status, res.statusText);
-        
         if (res.ok) {
           const data = await res.json();
-          console.log('Datos recibidos del servidor:', data);
-          
           setIsLoggedIn(true);
           setUsuario(data.usuario);
           setUserInfo({
@@ -448,27 +313,10 @@ function App() {
             isAdmin: data.isAdmin,
             empleado_ci: data.empleado_ci
           });
-          
-          // Asegurar que guardamos toda la información (incluyendo token si existe)
-          const sessionDataToSave = {
-            ...data,
-            token: data.token || (sesionLocalVerificacion ? sesionLocalVerificacion.token : null)
-          };
-          guardarSesionLocal(sessionDataToSave);
-          
-          console.log(`Sesión restaurada exitosamente en ${isProduction ? 'producción' : 'desarrollo'}:`, data.usuario, 'Admin:', data.isAdmin);
-          console.log('Método de autenticación usado:', sesionLocalVerificacion && sesionLocalVerificacion.token ? 'Token JWT' : 'Servidor directo');
-          console.log('Token guardado:', !!sessionDataToSave.token);
+          console.log('Sesión restaurada exitosamente:', data.usuario, 'Admin:', data.isAdmin);
         } else {
-          console.log('Servidor rechazó la verificación:', res.status, res.statusText);
-          
-          // Si había una sesión local pero el servidor la rechaza, limpiarla
-          if (sesionLocalVerificacion) {
-            console.log('Limpiando sesión local inválida');
-            limpiarSesionLocal();
-          }
-          
-          // Limpiar estado
+          console.log('No hay sesión activa, código:', res.status);
+          // Asegurar que el estado esté limpio
           setIsLoggedIn(false);
           setUsuario('');
           setUserInfo({
@@ -479,99 +327,82 @@ function App() {
           });
         }
       } catch (error) {
-        console.log('Error en verificación de sesión:', error.name, error.message);
-        
         if (error.name === 'AbortError') {
-          console.log('Verificación de sesión: timeout');
-          
-          // Si hay timeout pero tenemos sesión local válida, usarla
-          const sesionLocalTimeout = leerSesionLocal();
-          if (sesionLocalTimeout) {
-            console.log('Usando sesión local debido a timeout del servidor');
-            setIsLoggedIn(true);
-            setUsuario(sesionLocalTimeout.usuario);
-            setUserInfo({
-              usuario: sesionLocalTimeout.usuario,
-              email: sesionLocalTimeout.email,
-              isAdmin: sesionLocalTimeout.isAdmin,
-              empleado_ci: sesionLocalTimeout.empleado_ci
-            });
-            setIsLoading(false);
-            return;
-          }
+          console.log('Timeout en verificación de sesión');
         } else {
-          console.log('Error de conexión en verificación de sesión');
-        }
-        
-        // Solo limpiar si no hay sesión local válida
-        const sesionLocalFinal = leerSesionLocal();
-        if (!sesionLocalFinal) {
-          setIsLoggedIn(false);
-          setUsuario('');
-          setUserInfo({
-            usuario: '',
-            email: '',
-            isAdmin: false,
-            empleado_ci: null
-          });
+          console.error('Error al verificar sesión:', error);
         }
       } finally {
-        console.log('Verificación de sesión completada');
+        console.log('Finalizando verificación de sesión');
         setIsLoading(false);
       }
     };
 
     verificarSesion();
 
-    // Timeout de seguridad: ajustado según entorno
-    const safetyTimeoutMs = isProduction ? 20000 : 35000; // 20s en producción, 35s en desarrollo
+    // Timeout de seguridad: asegurar que el loading desaparezca después de 3 segundos máximo
     const safetyTimeout = setTimeout(() => {
       if (isLoading) {
-        console.log(`Timeout de seguridad (${isProduction ? 'producción' : 'desarrollo'}): el servidor tardó demasiado en responder`);
+        console.log('Timeout de seguridad activado, ocultando loading');
         setIsLoading(false);
       }
-    }, safetyTimeoutMs);
+    }, 3000);
 
     return () => clearTimeout(safetyTimeout);
-  }, []);
+  }, [isLoading]);
 
   // Función para cerrar sesión
   const handleLogout = async () => {
-    try {
-      const sesionLocal = leerSesionLocal();
-      const headers = { "Content-Type": "application/json" };
-      
-      // Si hay un token, incluirlo en la cabecera
-      if (sesionLocal && sesionLocal.token) {
-        headers['Authorization'] = `Bearer ${sesionLocal.token}`;
-      }
-      
-      await fetch(apiUrl("/auth/logout"), {
+    try{
+      await fetch("http://localhost:3000/auth/logout", {
         method: "POST",
-        headers: headers
+        credentials: "include", // MUY IMPORTANTE para cookies
       });
-      
-      console.log('Logout enviado al servidor');
-    } catch (error) {
-      console.error("Error al cerrar sesión en servidor:", error);
-    } finally {
-      // SIEMPRE limpiar el estado local, independientemente del servidor
+      // Actualizar el estado local
       setIsLoggedIn(false);
       setUsuario('');
       setPassword('');
+      setError('');
+      setWarning('');
+      setBloqueado(false);
+      setIntentosRestantes(5);
+      setTiempoBloqueo('');
       setUserInfo({
         usuario: '',
         email: '',
         isAdmin: false,
         empleado_ci: null
       });
-      limpiarSesionLocal();
-      console.log('Sesión cerrada localmente');
+      console.log('Sesión cerrada exitosamente');
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      // Aún así cerrar sesión localmente
+      setIsLoggedIn(false);
+      setUsuario('');
+      setPassword('');
+      setError('');
+      setWarning('');
+      setBloqueado(false);
+      setIntentosRestantes(5);
+      setTiempoBloqueo('');
+      setUserInfo({
+        usuario: '',
+        email: '',
+        isAdmin: false,
+        empleado_ci: null
+      });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Limpiar estados anteriores
+    setError('')
+    setWarning('')
+    setBloqueado(false)
+    setTiempoBloqueo('')
+    
     if (!usuario || !password) {
       setError('Debes ingresar usuario y contraseña')
       return
@@ -579,15 +410,20 @@ function App() {
     
     try {
       // Validación de credenciales
-      const res = await fetch(apiUrl("/auth/login"), {
+      const res = await fetch("http://localhost:3000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // MUY IMPORTANTE para cookies
         body: JSON.stringify({ usuario, contrasena: password })
       });
       
+      const data = await res.json();
+      
       if (res.ok) {
-        const data = await res.json();
+        // Login exitoso
         setError('')
+        setWarning('')
+        setBloqueado(false)
         setIsLoggedIn(true)
         setUserInfo({
           usuario: data.usuario,
@@ -595,22 +431,66 @@ function App() {
           isAdmin: data.isAdmin,
           empleado_ci: data.empleado_ci
         });
+        console.log('Login exitoso', 'Admin:', data.isAdmin)
+      } else if (res.status === 423) {
+        // Usuario bloqueado
+        setBloqueado(true)
+        setError(data.message || 'Tu cuenta está bloqueada por múltiples intentos fallidos')
         
-        // Guardar toda la información incluyendo token si existe
-        const sessionData = {
-          ...data,
-          token: data.token || null // Guardar token si el backend lo envía
-        };
-        guardarSesionLocal(sessionData);
+        // Usar tiempo restante pre-calculado del backend
+        if (data.tiempoRestanteHoras !== undefined && data.tiempoRestanteMinutos !== undefined) {
+          const horas = data.tiempoRestanteHoras;
+          const minutos = data.tiempoRestanteMinutos;
+          
+          if (horas > 0) {
+            setTiempoBloqueo(`${horas}h ${minutos}m restantes`)
+          } else if (minutos > 0) {
+            setTiempoBloqueo(`${minutos}m restantes`)
+          } else {
+            setTiempoBloqueo('Menos de 1 minuto restante')
+          }
+        } else if (data.tiempoRestante) {
+          // Fallback si no vienen los valores pre-calculados
+          const horas = Math.floor(data.tiempoRestante / (1000 * 60 * 60))
+          const minutos = Math.floor((data.tiempoRestante % (1000 * 60 * 60)) / (1000 * 60))
+          
+          if (horas > 0) {
+            setTiempoBloqueo(`${horas}h ${minutos}m restantes`)
+          } else if (minutos > 0) {
+            setTiempoBloqueo(`${minutos}m restantes`)
+          } else {
+            setTiempoBloqueo('Menos de 1 minuto restante')
+          }
+        }
         
-        console.log('Login exitoso en', isProduction ? 'producción' : 'desarrollo', '- Admin:', data.isAdmin);
+        console.log('Usuario bloqueado:', data.message)
+      } else if (res.status === 401) {
+        // Credenciales incorrectas
+        setError(data.message || 'Usuario o contraseña incorrectos')
+        
+        // Mostrar intentos restantes si están disponibles
+        if (data.intentosRestantes !== undefined) {
+          setIntentosRestantes(data.intentosRestantes)
+          
+          if (data.intentosRestantes <= 2 && data.intentosRestantes > 0) {
+            setWarning(`⚠️ Solo te quedan ${data.intentosRestantes} intento${data.intentosRestantes === 1 ? '' : 's'} antes del bloqueo`)
+          }
+        }
+        
+        // Mostrar advertencia específica si está disponible
+        if (data.warning) {
+          setWarning(data.warning)
+        }
+        
+        console.log('Credenciales incorrectas. Intentos restantes:', data.intentosRestantes)
       } else {
-        const errorData = await res.json().catch(() => ({}));
-        setError(errorData.message || 'Usuario o contraseña incorrectos')
+        // Otros errores
+        setError(data.message || data.error || 'Error al iniciar sesión')
+        console.error('Error en login:', data)
       }
     } catch (error) {
-      console.error('Error en login:', error);
-      setError('Error de conexión. Intenta de nuevo.');
+      console.error('Error de red en login:', error)
+      setError('Error de conexión. Verifica que el servidor esté funcionando.')
     }
   }
 
@@ -634,15 +514,7 @@ function App() {
           animation: 'spin 1s linear infinite',
           mb: 2
         }} />
-        <Typography variant="body1" color="text.secondary">
-          Verificando sesión...
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
-          {window.location.hostname !== 'localhost' 
-            ? 'Verificando sesión con el servidor (cookies + tokens)...' 
-            : 'Si es la primera vez que accedes hoy, el servidor puede tardar unos segundos en responder'
-          }
-        </Typography>
+        <Typography variant="body1" color="text.secondary">Cargando...</Typography>
         <style jsx>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -661,7 +533,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box className="login-container" sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, minHeight: '100vh' }}>
+      <Box className="login-container" sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: '100vh' }}>
         {/* Lado izquierdo */}
         <Box 
           className="left-side"
@@ -669,28 +541,25 @@ function App() {
             flex: 1,
             position: 'relative',
             overflow: 'hidden',
-            display: 'flex',
+            display: { xs: 'none', md: 'flex' }, // ocultar ilustración en móviles
             justifyContent: 'center',
             alignItems: 'center',
             background: 'linear-gradient(135deg, #ff8c42 0%, #ff6b1a 50%, #e55a00 100%)',
-            minHeight: { xs: 180, sm: 'auto' },
-            maxHeight: { xs: 260, sm: 'none' },
           }}
         >
           {/* Contenedor de logo y letras en fila */}
           <Box sx={{ 
             display: 'flex', 
             alignItems: 'center', 
-            gap: { xs: 0, sm: 2 },
+            gap: 0, // espacio entre logo y letras
             zIndex: 1,
-            flexDirection: { xs: 'column', sm: 'row' },
           }}>
             <img
               src="/logo.png"
               alt="Logo MR"
               style={{
-                width: 'min(70vw, 220px)',
-                height: 'min(70vw, 220px)',
+                width: '400px',
+                height: '400px',
                 objectFit: 'contain',
                 filter: 'brightness(1) drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
               }}
@@ -699,12 +568,11 @@ function App() {
               src="/letras.png"
               alt="Multiservicio Renacer"
               style={{
-                width: 'min(80vw, 250px)',
+                width: '450px',
                 height: 'auto',
                 objectFit: 'contain',
                 filter: 'brightness(1) drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
-                marginLeft: 0,
-                marginTop: 0,
+                marginLeft: '-200px',
               }}
             />
           </Box>
@@ -720,7 +588,6 @@ function App() {
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.1)',
               animation: 'pulse 2s ease-in-out infinite',
-              display: { xs: 'none', sm: 'block' }
             }}
           />
           <Box
@@ -733,7 +600,6 @@ function App() {
               borderRadius: '50%',
               background: 'rgba(255, 255, 255, 0.15)',
               animation: 'pulse 2s ease-in-out infinite 1s',
-              display: { xs: 'none', sm: 'block' }
             }}
           />
         </Box>
@@ -748,7 +614,6 @@ function App() {
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: '#000',
-            minHeight: { xs: 320, sm: 'auto' },
           }}
         >
           <Box 
@@ -768,23 +633,24 @@ function App() {
           />
 
           <Container 
-            maxWidth="sm" 
+            maxWidth={isMobile ? 'xs' : 'sm'} 
             sx={{ 
               position: 'relative', 
               zIndex: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: { xs: 'auto', sm: '100vh' },
-              py: { xs: 2, sm: 4 }
+              height: '100vh',
+              py: isMobile ? 3 : 4,
+              px: isMobile ? 2 : undefined
             }}
           >
             <Paper
               elevation={20}
               sx={{
-                p: { xs: 2, sm: 4, md: 5 },
+                p: isMobile ? 2 : { xs: 3, sm: 4, md: 5 },
                 width: '100%',
-                maxWidth: 450,
+                maxWidth: isMobile ? '100%' : 450,
                 backgroundColor: 'rgba(30, 30, 30, 0.95)',
                 backdropFilter: 'blur(15px)',
                 borderRadius: 4,
@@ -796,12 +662,12 @@ function App() {
               }}
             >
               <Typography 
-                variant="h3" 
+                variant={isMobile ? 'h5' : 'h3'} 
                 color="primary" 
                 sx={{ 
                   mb: 1,
                   fontWeight: 'bold',
-                  fontSize: { xs: '1.6rem', sm: '2.5rem', md: '3rem' },
+                  fontSize: isMobile ? '1.5rem' : { xs: '2rem', sm: '2.5rem', md: '3rem' },
                   textShadow: '2px 2px 8px rgba(0, 0, 0, 0.8)',
                   background: 'linear-gradient(45deg, #ff8c42, #ff6b1a)',
                   backgroundClip: 'text',
@@ -815,26 +681,124 @@ function App() {
               <Typography 
                 variant="body1" 
                 color="rgba(255, 255, 255, 0.7)" 
-                sx={{ mb: 4, fontSize: { xs: '0.95rem', sm: '1rem' } }}
+                sx={{ mb: 2, fontSize: isMobile ? '0.95rem' : '1rem' }}
               >
                 Accede a tu cuenta
               </Typography>
 
-              {error && (
+              {/* Información de seguridad */}
+              {!bloqueado && intentosRestantes < 5 && (
                 <Box
                   sx={{
-                    backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                    border: '1px solid rgba(244, 67, 54, 0.3)',
+                    backgroundColor: 'rgba(33, 150, 243, 0.05)',
+                    border: '1px solid rgba(33, 150, 243, 0.2)',
                     borderRadius: 2,
-                    p: 2,
+                    p: 1.5,
                     mb: 3,
                   }}
                 >
                   <Typography 
-                    color="error" 
-                    sx={{ fontWeight: 'bold', fontSize: '0.9rem' }}
+                    sx={{ 
+                      fontSize: '0.8rem',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      textAlign: 'center'
+                    }}
                   >
-                    {error}
+                    🔐 Por seguridad, se bloquearán las cuentas después de 5 intentos fallidos
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Mensaje de error general */}
+              {error && (
+                <Box
+                  sx={{
+                    backgroundColor: bloqueado ? 'rgba(244, 67, 54, 0.15)' : 'rgba(244, 67, 54, 0.1)',
+                    border: bloqueado ? '1px solid rgba(244, 67, 54, 0.5)' : '1px solid rgba(244, 67, 54, 0.3)',
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Typography 
+                    color="error" 
+                    sx={{ 
+                      fontWeight: 'bold', 
+                      fontSize: bloqueado ? '1rem' : '0.9rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1
+                    }}
+                  >
+                    {bloqueado && '🔒'} {error}
+                  </Typography>
+                  
+                  {/* Mostrar tiempo de bloqueo si está disponible */}
+                  {bloqueado && tiempoBloqueo && (
+                    <Typography 
+                      color="error" 
+                      sx={{ 
+                        fontSize: '0.8rem',
+                        mt: 1,
+                        opacity: 0.8
+                      }}
+                    >
+                      ⏰ {tiempoBloqueo}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+
+              {/* Mensaje de advertencia (intentos restantes) */}
+              {warning && !error && (
+                <Box
+                  sx={{
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                    border: '1px solid rgba(255, 152, 0, 0.3)',
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Typography 
+                    sx={{ 
+                      fontWeight: 'bold', 
+                      fontSize: '0.9rem',
+                      color: '#ff9800',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1
+                    }}
+                  >
+                    {warning}
+                  </Typography>
+                </Box>
+              )}
+
+              {/* Contador de intentos (solo si no hay error ni está bloqueado) */}
+              {!error && !bloqueado && intentosRestantes < 5 && (
+                <Box
+                  sx={{
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    border: '1px solid rgba(33, 150, 243, 0.3)',
+                    borderRadius: 2,
+                    p: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Typography 
+                    sx={{ 
+                      fontSize: '0.85rem',
+                      color: '#2196f3',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 1
+                    }}
+                  >
+                    💡 Intentos restantes: {intentosRestantes}/5
                   </Typography>
                 </Box>
               )}
@@ -846,28 +810,31 @@ function App() {
                   variant="outlined"
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
+                  disabled={bloqueado}
+                  size={isMobile ? 'small' : 'medium'}
                   sx={{
                     mb: 3,
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
-                        borderColor: 'rgba(255, 140, 66, 0.5)',
+                        borderColor: bloqueado ? 'rgba(244, 67, 54, 0.3)' : 'rgba(255, 140, 66, 0.5)',
                         borderWidth: 2,
                       },
                       '&:hover fieldset': {
-                        borderColor: 'primary.main',
+                        borderColor: bloqueado ? 'rgba(244, 67, 54, 0.3)' : 'primary.main',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: 'primary.main',
+                        borderColor: bloqueado ? 'rgba(244, 67, 54, 0.3)' : 'primary.main',
                       },
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      backgroundColor: bloqueado ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.05)',
                       borderRadius: 3,
+                      opacity: bloqueado ? 0.6 : 1,
                     },
                     '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.8)',
+                      color: bloqueado ? 'rgba(244, 67, 54, 0.6)' : 'rgba(255, 255, 255, 0.8)',
                       fontWeight: 500,
                     },
                     '& .MuiOutlinedInput-input': {
-                      color: 'white',
+                      color: bloqueado ? 'rgba(255, 255, 255, 0.4)' : 'white',
                     },
                   }}
                 />
@@ -878,28 +845,31 @@ function App() {
                   variant="outlined"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={bloqueado}
+                  size={isMobile ? 'small' : 'medium'}
                   sx={{
                     mb: 4,
                     '& .MuiOutlinedInput-root': {
                       '& fieldset': {
-                        borderColor: 'rgba(255, 140, 66, 0.5)',
+                        borderColor: bloqueado ? 'rgba(244, 67, 54, 0.3)' : 'rgba(255, 140, 66, 0.5)',
                         borderWidth: 2,
                       },
                       '&:hover fieldset': {
-                        borderColor: 'primary.main',
+                        borderColor: bloqueado ? 'rgba(244, 67, 54, 0.3)' : 'primary.main',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: 'primary.main',
+                        borderColor: bloqueado ? 'rgba(244, 67, 54, 0.3)' : 'primary.main',
                       },
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      backgroundColor: bloqueado ? 'rgba(255, 255, 255, 0.02)' : 'rgba(255, 255, 255, 0.05)',
                       borderRadius: 3,
+                      opacity: bloqueado ? 0.6 : 1,
                     },
                     '& .MuiInputLabel-root': {
-                      color: 'rgba(255, 255, 255, 0.8)',
+                      color: bloqueado ? 'rgba(244, 67, 54, 0.6)' : 'rgba(255, 255, 255, 0.8)',
                       fontWeight: 500,
                     },
                     '& .MuiOutlinedInput-input': {
-                      color: 'white',
+                      color: bloqueado ? 'rgba(255, 255, 255, 0.4)' : 'white',
                     },
                   }}
                 />
@@ -908,30 +878,84 @@ function App() {
                   type="submit"
                   fullWidth
                   variant="contained"
-                  size="large"
+                  size={isMobile ? 'large' : 'large'}
+                  disabled={bloqueado}
                   sx={{
-                    py: 2,
-                    fontSize: { xs: '1rem', sm: '1.1rem' },
+                    py: isMobile ? 1.5 : 2,
+                    fontSize: isMobile ? '1rem' : '1.1rem',
                     fontWeight: 'bold',
                     textTransform: 'uppercase',
                     borderRadius: 3,
-                    background: 'linear-gradient(45deg, #ff8c42, #ff6b1a)',
+                    background: bloqueado 
+                      ? 'linear-gradient(45deg, #666, #555)' 
+                      : 'linear-gradient(45deg, #ff8c42, #ff6b1a)',
                     '&:hover': {
-                      background: 'linear-gradient(45deg, #ff6b1a, #e55a00)',
+                      background: bloqueado 
+                        ? 'linear-gradient(45deg, #666, #555)' 
+                        : 'linear-gradient(45deg, #ff6b1a, #e55a00)',
                     },
+                    '&:disabled': {
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      cursor: 'not-allowed',
+                    }
                   }}
                 >
-                  INGRESAR
+                  {bloqueado ? '🔒 CUENTA BLOQUEADA' : 'INGRESAR'}
                 </Button>
               </Box>
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', pt: 2 }}>
-                <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
-                  ¿Olvidaste tu contraseña?
-                </Link>
-                <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
-                  Crear cuenta nueva
-                </Link>
+              {/* Botón especial para usuarios bloqueados */}
+              {bloqueado && (
+                <Box sx={{ mb: 3 }}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    size="large"
+                    onClick={() => {
+                      // Aquí podrías abrir un modal, enviar email, etc.
+                      alert('Contacta al administrador del sistema para desbloquear tu cuenta.\n\nTel: +591 XXX-XXXX\nEmail: admin@empresa.com');
+                    }}
+                    sx={{
+                      py: 1.5,
+                      fontSize: '0.95rem',
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      borderRadius: 3,
+                      borderColor: 'rgba(255, 140, 66, 0.5)',
+                      color: 'rgba(255, 140, 66, 0.8)',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        color: 'primary.main',
+                        backgroundColor: 'rgba(255, 140, 66, 0.05)',
+                      },
+                    }}
+                  >
+                    📞 Contactar Administrador
+                  </Button>
+                </Box>
+              )}
+
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, flexWrap: 'wrap', pt: 2 }}>
+                {!bloqueado && (
+                  <>
+                    <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: '0.9rem' }}>
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                    <Link href="#" color="rgba(255, 255, 255, 0.7)" underline="hover" sx={{ fontSize: '0.9rem' }}>
+                      Crear cuenta nueva
+                    </Link>
+                  </>
+                )}
+                
+                {bloqueado && (
+                  <Typography 
+                    variant="body2" 
+                    color="rgba(255, 255, 255, 0.6)" 
+                    sx={{ fontSize: '0.85rem', textAlign: 'center' }}
+                  >
+                    Tu cuenta se desbloqueará automáticamente después del tiempo indicado
+                  </Typography>
+                )}
               </Box>
             </Paper>
           </Container>
