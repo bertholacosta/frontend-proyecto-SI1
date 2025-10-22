@@ -22,6 +22,11 @@ import {
   Divider,
   useMediaQuery,
   Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -54,6 +59,8 @@ import Servicios from "./pages/servicios/servicios";
 
 import "./App.css";
 import { API_BASE } from "./utils/apiConfig";
+import authService from "./services/authService";
+import { FIELD_LIMITS } from "./utils/fieldValidations";
 
 // Tema personalizado con colores naranja y negro
 const theme = createTheme({
@@ -457,6 +464,13 @@ function App() {
     isAdmin: false,
     empleado_ci: null,
   });
+  
+  // Estados para recuperación de contraseña
+  const [mostrarRecuperacion, setMostrarRecuperacion] = useState(false);
+  const [recuperacionUsuario, setRecuperacionUsuario] = useState("");
+  const [recuperacionEmail, setRecuperacionEmail] = useState("");
+  const [recuperacionLoading, setRecuperacionLoading] = useState(false);
+  const [recuperacionMensaje, setRecuperacionMensaje] = useState({ tipo: "", texto: "" });
 
   // Efecto para actualizar el tiempo de bloqueo cada minuto
   useEffect(() => {
@@ -477,20 +491,27 @@ function App() {
       try {
         console.log("Iniciando verificación de sesión...");
 
-        // Las cookies httpOnly no son accesibles desde JavaScript
-        // Siempre intentar verificar con el servidor
-
-        // Crear un timeout para la verificación (más agresivo)
+        // Crear un timeout para la verificación
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // ampliar timeout para servidores remotos
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-        const res = await fetch(`${API_BASE}/auth/verificar`, {
+        // Intentar primero con cookies (método preferido)
+        let res = await fetch(`${API_BASE}/auth/verificar`, {
           method: "GET",
           credentials: "include", // Importante para enviar cookies
           signal: controller.signal,
         });
 
         clearTimeout(timeoutId);
+
+        // Si falla con cookies, intentar con token de localStorage (fallback para iOS)
+        if (!res.ok && authService.hasToken()) {
+          console.log("🍪 Cookies no funcionaron, intentando con token de localStorage...");
+          res = await fetch(`${API_BASE}/auth/verificar`, {
+            method: "GET",
+            headers: authService.getAuthHeaders(),
+          });
+        }
 
         if (res.ok) {
           const data = await res.json();
@@ -503,13 +524,15 @@ function App() {
             empleado_ci: data.empleado_ci,
           });
           console.log(
-            "Sesión restaurada exitosamente:",
+            "✅ Sesión restaurada exitosamente:",
             data.usuario,
             "Admin:",
             data.isAdmin
           );
         } else {
-          console.log("No hay sesión activa, código:", res.status);
+          console.log("❌ No hay sesión activa, código:", res.status);
+          // Limpiar token si la sesión no es válida
+          authService.removeToken();
           // Asegurar que el estado esté limpio
           setIsLoggedIn(false);
           setUsuario("");
@@ -522,9 +545,32 @@ function App() {
         }
       } catch (error) {
         if (error.name === "AbortError") {
-          console.log("Timeout en verificación de sesión");
+          console.log("⏱️ Timeout en verificación de sesión");
         } else {
-          console.error("Error al verificar sesión:", error);
+          console.error("❌ Error al verificar sesión:", error);
+        }
+        // Si hay error, intentar con localStorage
+        if (authService.hasToken()) {
+          try {
+            const res = await fetch(`${API_BASE}/auth/verificar`, {
+              method: "GET",
+              headers: authService.getAuthHeaders(),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              setIsLoggedIn(true);
+              setUsuario(data.usuario);
+              setUserInfo({
+                usuario: data.usuario,
+                email: data.email,
+                isAdmin: data.isAdmin,
+                empleado_ci: data.empleado_ci,
+              });
+              console.log("✅ Sesión restaurada con localStorage");
+            }
+          } catch (fallbackError) {
+            console.error("❌ También falló con localStorage:", fallbackError);
+          }
         }
       } finally {
         console.log("Finalizando verificación de sesión");
@@ -551,7 +597,13 @@ function App() {
       await fetch(`${API_BASE}/auth/logout`, {
         method: "POST",
         credentials: "include", // MUY IMPORTANTE para cookies
+        headers: authService.getAuthHeaders(), // Incluir token si existe
       });
+      
+      // Eliminar token de localStorage
+      authService.removeToken();
+      console.log("📱 Token eliminado de localStorage");
+      
       // Actualizar el estado local
       setIsLoggedIn(false);
       setUsuario("");
@@ -570,7 +622,9 @@ function App() {
       console.log("Sesión cerrada exitosamente");
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      // Aún así cerrar sesión localmente
+      
+      // Aún así cerrar sesión localmente y limpiar localStorage
+      authService.removeToken();
       setIsLoggedIn(false);
       setUsuario("");
       setPassword("");
@@ -585,6 +639,82 @@ function App() {
         isAdmin: false,
         empleado_ci: null,
       });
+    }
+  };
+
+  // Función para manejar la recuperación de contraseña
+  const handleRecuperarContrasena = async (e) => {
+    e.preventDefault();
+    setRecuperacionLoading(true);
+    setRecuperacionMensaje({ tipo: "", texto: "" });
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/recuperar-contrasena`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          usuario: recuperacionUsuario, 
+          email: recuperacionEmail 
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setRecuperacionMensaje({
+          tipo: 'success',
+          texto: data.message || 'Se ha enviado una nueva contraseña a tu correo electrónico.'
+        });
+        // Limpiar formulario
+        setRecuperacionUsuario('');
+        setRecuperacionEmail('');
+        
+        // Cerrar el modal después de 5 segundos
+        setTimeout(() => {
+          setMostrarRecuperacion(false);
+          setRecuperacionMensaje({ tipo: "", texto: "" });
+        }, 5000);
+      } else if (response.status === 404) {
+        // Usuario no encontrado
+        setRecuperacionMensaje({
+          tipo: 'error',
+          texto: data.message || 'El usuario ingresado no existe en el sistema.'
+        });
+      } else if (response.status === 400) {
+        // Error de validación (email incorrecto, datos inválidos, etc.)
+        setRecuperacionMensaje({
+          tipo: 'error',
+          texto: data.message || 'Verifica que los datos ingresados sean correctos.'
+        });
+      } else if (response.status === 423) {
+        // Usuario bloqueado
+        setRecuperacionMensaje({
+          tipo: 'warning',
+          texto: data.message || 'Tu cuenta está bloqueada temporalmente.'
+        });
+      } else if (response.status === 500) {
+        // Error del servidor (generalmente error al enviar email)
+        setRecuperacionMensaje({
+          tipo: 'error',
+          texto: data.message || 'Error al enviar el correo. Contacta al administrador.'
+        });
+      } else {
+        // Cualquier otro error
+        setRecuperacionMensaje({
+          tipo: 'error',
+          texto: data.message || data.error || 'Error al procesar la solicitud.'
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setRecuperacionMensaje({
+        tipo: 'error',
+        texto: 'Error de conexión. Por favor intenta más tarde.'
+      });
+    } finally {
+      setRecuperacionLoading(false);
     }
   };
 
@@ -625,6 +755,13 @@ function App() {
           isAdmin: data.isAdmin,
           empleado_ci: data.empleado_ci,
         });
+        
+        // Guardar token en localStorage como fallback para iOS/dispositivos móviles
+        if (data.token) {
+          authService.saveToken(data.token);
+          console.log("📱 Token guardado en localStorage para compatibilidad móvil");
+        }
+        
         console.log("Login exitoso", "Admin:", data.isAdmin);
       } else if (res.status === 423) {
         // Usuario bloqueado
@@ -1048,6 +1185,10 @@ function App() {
                   onChange={(e) => setUsuario(e.target.value)}
                   disabled={bloqueado}
                   size={isMobile ? "small" : "medium"}
+                  inputProps={{
+                    minLength: FIELD_LIMITS.usuario.minLength,
+                    maxLength: FIELD_LIMITS.usuario.maxLength,
+                  }}
                   sx={{
                     mb: 3,
                     "& .MuiOutlinedInput-root": {
@@ -1093,6 +1234,10 @@ function App() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={bloqueado}
                   size={isMobile ? "small" : "medium"}
+                  inputProps={{
+                    minLength: FIELD_LIMITS.contrasena.minLength,
+                    maxLength: FIELD_LIMITS.contrasena.maxLength,
+                  }}
                   sx={{
                     mb: 4,
                     "& .MuiOutlinedInput-root": {
@@ -1205,21 +1350,21 @@ function App() {
                 {!bloqueado && (
                   <>
                     <Link
-                      href="#"
+                      component="button"
+                      onClick={() => setMostrarRecuperacion(true)}
                       color="rgba(255, 255, 255, 0.7)"
                       underline="hover"
-                      sx={{ fontSize: "0.9rem" }}
+                      sx={{ 
+                        fontSize: "0.9rem",
+                        cursor: "pointer",
+                        "&:hover": {
+                          color: "primary.main"
+                        }
+                      }}
                     >
                       ¿Olvidaste tu contraseña?
                     </Link>
-                    <Link
-                      href="#"
-                      color="rgba(255, 255, 255, 0.7)"
-                      underline="hover"
-                      sx={{ fontSize: "0.9rem" }}
-                    >
-                      Crear cuenta nueva
-                    </Link>
+                    
                   </>
                 )}
 
@@ -1238,6 +1383,182 @@ function App() {
           </Container>
         </Box>
       </Box>
+
+      {/* Modal de Recuperación de Contraseña */}
+      <Dialog 
+        open={mostrarRecuperacion} 
+        onClose={() => {
+          setMostrarRecuperacion(false);
+          setRecuperacionUsuario('');
+          setRecuperacionEmail('');
+          setRecuperacionMensaje({ tipo: "", texto: "" });
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          color: 'white', 
+          fontWeight: 'bold',
+          fontSize: '1.5rem',
+          pb: 1
+        }}>
+          🔐 ¿Olvidaste tu contraseña?
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 3, mt: 1 }}>
+            Ingresa tu usuario y correo electrónico para recibir una nueva contraseña
+          </Typography>
+
+          <Box component="form" onSubmit={handleRecuperarContrasena}>
+            <TextField
+              fullWidth
+              label="Usuario"
+              value={recuperacionUsuario}
+              onChange={(e) => setRecuperacionUsuario(e.target.value)}
+              required
+              disabled={recuperacionLoading}
+              inputProps={{
+                minLength: FIELD_LIMITS.usuario.minLength,
+                maxLength: FIELD_LIMITS.usuario.maxLength,
+                pattern: FIELD_LIMITS.usuario.pattern.source,
+              }}
+              helperText={`${recuperacionUsuario.length}/${FIELD_LIMITS.usuario.maxLength} caracteres`}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 140, 66, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 140, 66, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiOutlinedInput-input': {
+                  color: 'white',
+                },
+                '& .MuiFormHelperText-root': {
+                  color: 'rgba(255, 255, 255, 0.5)',
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              label="Correo Electrónico"
+              type="email"
+              value={recuperacionEmail}
+              onChange={(e) => setRecuperacionEmail(e.target.value)}
+              required
+              disabled={recuperacionLoading}
+              inputProps={{
+                maxLength: FIELD_LIMITS.email.maxLength,
+              }}
+              helperText={`${recuperacionEmail.length}/${FIELD_LIMITS.email.maxLength} caracteres`}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 140, 66, 0.3)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(255, 140, 66, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'primary.main',
+                  },
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiOutlinedInput-input': {
+                  color: 'white',
+                },
+                '& .MuiFormHelperText-root': {
+                  color: 'rgba(255, 255, 255, 0.5)',
+                },
+              }}
+            />
+
+            {recuperacionMensaje.texto && (
+              <Alert 
+                severity={
+                  recuperacionMensaje.tipo === 'success' ? 'success' : 
+                  recuperacionMensaje.tipo === 'warning' ? 'warning' : 'error'
+                }
+                sx={{ mb: 2 }}
+              >
+                {recuperacionMensaje.texto}
+              </Alert>
+            )}
+
+            <Box sx={{ 
+              mt: 2, 
+              p: 2, 
+              backgroundColor: 'rgba(255, 140, 66, 0.1)', 
+              borderRadius: 2,
+              borderLeft: '4px solid #ff8c42'
+            }}>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
+                <strong>📧 Importante:</strong>
+              </Typography>
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.85rem' }}>
+                • Recibirás un correo con tu nueva contraseña temporal<br/>
+                • Revisa tu bandeja de entrada y spam<br/>
+                • Se recomienda cambiarla después de iniciar sesión
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={() => {
+              setMostrarRecuperacion(false);
+              setRecuperacionUsuario('');
+              setRecuperacionEmail('');
+              setRecuperacionMensaje({ tipo: "", texto: "" });
+            }}
+            disabled={recuperacionLoading}
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              }
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleRecuperarContrasena}
+            variant="contained"
+            disabled={recuperacionLoading || !recuperacionUsuario || !recuperacionEmail}
+            sx={{
+              background: 'linear-gradient(45deg, #ff8c42, #ff6b1a)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #ff6b1a, #e55a00)',
+              },
+              '&:disabled': {
+                background: 'rgba(255, 140, 66, 0.3)',
+              }
+            }}
+          >
+            {recuperacionLoading ? 'Procesando...' : 'Recuperar Contraseña'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ThemeProvider>
   );
 }
