@@ -26,6 +26,7 @@ import {
 import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
 import ServicioModal from '../components/ServicioModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionServicios() {
   const [servicios, setServicios] = useState([])
@@ -39,7 +40,6 @@ function GestionServicios() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
 
   useEffect(() => {
     fetchServicios()

@@ -25,6 +25,7 @@ import {
 import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaTools } from 'react-icons/fa';
 import MarcaHerramientaModal from '../components/MarcaHerramientaModal';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+import { API_URL } from '../config';
 
 const GestionMarcasHerramienta = () => {
   const [marcas, setMarcas] = useState([]);
@@ -35,7 +36,6 @@ const GestionMarcasHerramienta = () => {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
-  const API_URL = 'http://localhost:3000/api';
 
   useEffect(() => {
     fetchMarcas();

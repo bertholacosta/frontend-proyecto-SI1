@@ -22,6 +22,7 @@ import {
   IconButton,
 } from '@chakra-ui/react'
 import { SearchIcon, DownloadIcon, RepeatIcon } from '@chakra-ui/icons'
+import { API_URL } from '../config'
 
 function GestionBitacora() {
   const [bitacora, setBitacora] = useState([])
@@ -34,7 +35,7 @@ function GestionBitacora() {
   const [totalPaginas, setTotalPaginas] = useState(1)
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
+  
 
   useEffect(() => {
     fetchBitacora()

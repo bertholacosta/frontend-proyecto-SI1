@@ -31,6 +31,7 @@ import {
   NumberInput,
   NumberInputField,
 } from '@chakra-ui/react'
+import { API_URL } from '../config'
 import { AddIcon, DeleteIcon } from '@chakra-ui/icons'
 
 function ProformaModal({ isOpen, onClose, proforma, onSave }) {
@@ -55,8 +56,7 @@ function ProformaModal({ isOpen, onClose, proforma, onSave }) {
   const [loading, setLoading] = useState(false)
   const [nextDetalleId, setNextDetalleId] = useState(2)
   const [nextRepuestoId, setNextRepuestoId] = useState(1)
-
-  const API_URL = 'http://localhost:3000/api'
+ 
 
   useEffect(() => {
     if (isOpen) {

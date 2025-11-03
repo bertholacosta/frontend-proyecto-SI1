@@ -22,6 +22,7 @@ import {
 import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
 import EmpleadoModal from '../components/EmpleadoModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionEmpleados() {
   const [empleados, setEmpleados] = useState([])
@@ -35,8 +36,7 @@ function GestionEmpleados() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchEmpleados()
     fetchUsuarios()

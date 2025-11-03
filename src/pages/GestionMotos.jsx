@@ -22,6 +22,7 @@ import {
 import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
 import MotoModal from '../components/MotoModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionMotos() {
   const [motos, setMotos] = useState([])
@@ -35,8 +36,7 @@ function GestionMotos() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchMotos()
     fetchMarcas()

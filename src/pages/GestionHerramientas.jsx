@@ -28,6 +28,7 @@ import {
 import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaTools } from 'react-icons/fa';
 import HerramientaModal from '../components/HerramientaModal';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+import { API_URL } from '../config';
 
 const GestionHerramientas = () => {
   const [herramientas, setHerramientas] = useState([]);
@@ -39,8 +40,6 @@ const GestionHerramientas = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
-
-  const API_URL = 'http://localhost:3000/api';
 
   useEffect(() => {
     fetchHerramientas();

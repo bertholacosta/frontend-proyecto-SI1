@@ -28,6 +28,7 @@ import { EditIcon, DeleteIcon, AddIcon, SearchIcon, ViewIcon } from '@chakra-ui/
 import ProformaModal from '../components/ProformaModal'
 import ProformaDetalleModal from '../components/ProformaDetalleModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionProformas() {
   const [proformas, setProformas] = useState([])
@@ -42,8 +43,7 @@ function GestionProformas() {
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchProformas()
   }, [])

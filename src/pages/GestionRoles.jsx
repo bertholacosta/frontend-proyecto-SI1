@@ -23,6 +23,7 @@ import { EditIcon, DeleteIcon, AddIcon, SearchIcon, LockIcon } from '@chakra-ui/
 import RolModal from '../components/RolModal'
 import PermisosRolModal from '../components/PermisosRolModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionRoles() {
   const [roles, setRoles] = useState([])
@@ -38,7 +39,6 @@ function GestionRoles() {
   const { isOpen: isPermisosOpen, onOpen: onPermisosOpen, onClose: onPermisosClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
 
   useEffect(() => {
     fetchRoles()

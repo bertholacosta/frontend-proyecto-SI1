@@ -26,6 +26,7 @@ import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
 import { usePermissions } from '../contexts/PermissionContext'
 import ClienteModal from '../components/ClienteModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionClientes() {
   const { hasPermission } = usePermissions();
@@ -39,8 +40,7 @@ function GestionClientes() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchClientes()
   }, [])

@@ -33,6 +33,7 @@ import {
 import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaExchangeAlt } from 'react-icons/fa';
 import MovimientoHerramientaModal from '../components/MovimientoHerramientaModal';
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
+import { API_URL } from '../config'
 
 const GestionMovimientosHerramienta = () => {
   const [movimientos, setMovimientos] = useState([]);
@@ -47,7 +48,6 @@ const GestionMovimientosHerramienta = () => {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const toast = useToast();
 
-  const API_URL = 'http://localhost:3000/api';
 
   useEffect(() => {
     fetchMovimientos();

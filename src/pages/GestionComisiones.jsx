@@ -37,6 +37,7 @@ import {
 } from '@chakra-ui/icons'
 import ComisionModal from '../components/ComisionModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionComisiones() {
   const [comisiones, setComisiones] = useState([])
@@ -51,8 +52,7 @@ function GestionComisiones() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchComisiones()
     fetchOrdenesFinalizadas()

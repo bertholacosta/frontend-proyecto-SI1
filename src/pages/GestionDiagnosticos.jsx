@@ -28,6 +28,7 @@ import { EditIcon, DeleteIcon, AddIcon, SearchIcon, ChevronDownIcon, ChevronUpIc
 import { FaCheckCircle } from 'react-icons/fa'
 import DiagnosticoModal from '../components/DiagnosticoModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionDiagnosticos() {
   const [diagnosticos, setDiagnosticos] = useState([])
@@ -43,8 +44,7 @@ function GestionDiagnosticos() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchDiagnosticos()
     fetchMotos()

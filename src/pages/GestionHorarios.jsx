@@ -26,6 +26,7 @@ import { AddIcon, EditIcon, DeleteIcon, ChevronLeftIcon, ChevronRightIcon } from
 import HorarioModal from '../components/HorarioModal'
 import HorarioEmpleadoModal from '../components/HorarioEmpleadoModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionHorarios() {
   const [horarios, setHorarios] = useState([])
@@ -43,7 +44,6 @@ function GestionHorarios() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   
   const toast = useToast()
-  const API_URL = 'http://localhost:3000/api'
 
   // Obtener el inicio de la semana (lunes)
   function getStartOfWeek(date) {

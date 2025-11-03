@@ -25,6 +25,7 @@ import {
 import { EditIcon, DeleteIcon, AddIcon, SearchIcon, InfoIcon } from '@chakra-ui/icons'
 import OrdenTrabajoModal from '../components/OrdenTrabajoModal'
 import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
+import { API_URL } from '../config'
 
 function GestionOrdenesTrabajo() {
   const [ordenes, setOrdenes] = useState([])
@@ -41,8 +42,7 @@ function GestionOrdenesTrabajo() {
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure()
   const toast = useToast()
 
-  const API_URL = 'http://localhost:3000/api'
-
+ 
   useEffect(() => {
     fetchOrdenes()
     fetchEmpleados()
