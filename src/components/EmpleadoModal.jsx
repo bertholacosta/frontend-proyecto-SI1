@@ -82,8 +82,8 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
 
     if (!formData.telefono.trim()) {
       newErrors.telefono = 'El teléfono es requerido'
-    } else if (!/^\d{10}$/.test(formData.telefono)) {
-      newErrors.telefono = 'El teléfono debe tener 10 dígitos'
+    } else if (!/^\d{8,15}$/.test(formData.telefono)) {
+      newErrors.telefono = 'El teléfono debe tener entre 8 y 15 dígitos'
     }
 
     setErrors(newErrors)
@@ -154,8 +154,8 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
                     name="telefono"
                     value={formData.telefono}
                     onChange={handleChange}
-                    placeholder="1234567890"
-                    maxLength={10}
+                    placeholder="12345678"
+                    maxLength={15}
                   />
                   <FormErrorMessage>{errors.telefono}</FormErrorMessage>
                 </FormControl>

@@ -72,8 +72,8 @@ function ClienteModal({ isOpen, onClose, cliente, onSave }) {
 
     if (!formData.telefono.trim()) {
       newErrors.telefono = 'El teléfono es requerido'
-    } else if (!/^\d{7,15}$/.test(formData.telefono)) {
-      newErrors.telefono = 'El teléfono debe tener entre 7 y 15 dígitos'
+    } else if (!/^\d{8,15}$/.test(formData.telefono)) {
+      newErrors.telefono = 'El teléfono debe tener entre 8 y 15 dígitos'
     }
 
     if (!formData.direccion.trim()) {
