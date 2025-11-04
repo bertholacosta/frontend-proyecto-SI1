@@ -19,10 +19,10 @@ import {
   InputGroup,
   InputLeftElement,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
-import UsuarioModal from '../components/UsuarioModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from "@chakra-ui/icons";
+import UsuarioModal from "../../components/UsuarioModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionUsuarios() {
   const [usuarios, setUsuarios] = useState([])

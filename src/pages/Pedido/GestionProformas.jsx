@@ -25,10 +25,10 @@ import {
   Tooltip,
 } from '@chakra-ui/react'
 import { EditIcon, DeleteIcon, AddIcon, SearchIcon, ViewIcon } from '@chakra-ui/icons'
-import ProformaModal from '../components/ProformaModal'
-import ProformaDetalleModal from '../components/ProformaDetalleModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import ProformaModal from '../../components/ProformaModal'
+import ProformaDetalleModal from '../../components/ProformaDetalleModal'
+import DeleteConfirmDialog from '../../components/DeleteConfirmDialog'
+import { API_URL } from '../../config'
 
 function GestionProformas() {
   const [proformas, setProformas] = useState([])

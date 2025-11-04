@@ -22,11 +22,11 @@ import {
   CardBody,
   Heading,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
-import { usePermissions } from '../contexts/PermissionContext'
-import ClienteModal from '../components/ClienteModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from "@chakra-ui/icons";
+import { usePermissions } from "../../contexts/PermissionContext";
+import ClienteModal from "../../components/ClienteModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionClientes() {
   const { hasPermission } = usePermissions();

@@ -1,4 +1,4 @@
-import { Box, VStack, HStack, Text, Icon, Flex, Avatar } from '@chakra-ui/react'
+import { Box, VStack, HStack, Text, Icon, Flex, Avatar, Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon } from '@chakra-ui/react'
 import { 
   ViewIcon,
   AtSignIcon,
@@ -14,76 +14,85 @@ import { usePermissions } from '../contexts/PermissionContext'
 function Sidebar({ userEmail, onMenuClick, activeMenu = 'dashboard', isOpen, onClose }) {
   const { canAccessModule, user } = usePermissions();
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: ViewIcon, alwaysShow: true },
-    { id: 'empleados', label: 'Empleados', icon: FaUserTie, module: 'empleados' },
-    { id: 'motos', label: 'Motos', icon: FaMotorcycle, module: 'motos' },
-    { id: 'diagnosticos', label: 'Diagnósticos', icon: FaClipboardList, module: 'diagnosticos' },
-    { id: 'clientes', label: 'Clientes', icon: FaUsers, module: 'clientes' },
-    { id: 'servicios', label: 'Servicios', icon: FaTools, module: 'servicios' },
-    { id: 'proformas', label: 'Proformas', icon: FaFileInvoiceDollar, module: 'proformas' },
-    { id: 'horarios', label: 'Horarios', icon: FaClock, module: 'horarios' },
-    { id: 'ordenes-trabajo', label: 'Órdenes de Trabajo', icon: FaClipboardCheck, module: 'ordenes_trabajo' },
-    { id: 'comisiones', label: 'Comisiones', icon: FaMoneyBillWave, module: 'comisiones' },
-    { id: 'marcas-herramienta', label: 'Marcas de Herramientas', icon: FaTag, module: 'marcas_herramienta' },
-    { id: 'herramientas', label: 'Herramientas', icon: FaWrench, module: 'herramientas' },
-    { id: 'movimientos-herramienta', label: 'Movimientos', icon: FaExchangeAlt, module: 'movimientos_herramienta' },
-    { id: 'bitacora', label: 'Bitácora', icon: FaHistory, module: 'bitacora' },
-    { id: 'usuarios', label: 'Usuarios', icon: AtSignIcon, module: 'usuarios' },
-    { id: 'roles', label: 'Roles', icon: StarIcon, module: 'roles' },
-    { id: 'permisos', label: 'Permisos', icon: LockIcon, module: 'permisos' },
-    { id: 'reportes', label: 'Reportes', icon: InfoIcon, alwaysShow: true },
-    { id: 'documentos', label: 'Documentos', icon: CheckCircleIcon, alwaysShow: true },
-    { id: 'configuracion', label: 'Configuración', icon: SettingsIcon, alwaysShow: true },
-  ];
+  const menuGroups = {
+    general: {
+      label: 'General',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: ViewIcon, alwaysShow: true }
+      ]
+    },
+    administracion: {
+      label: 'Administración',
+      items: [
+        { id: 'empleados', label: 'Empleados', icon: FaUserTie, module: 'empleados' },
+        { id: 'clientes', label: 'Clientes', icon: FaUsers, module: 'clientes' },
+        { id: 'usuarios', label: 'Usuarios', icon: AtSignIcon, module: 'usuarios' },
+        { id: 'roles', label: 'Roles', icon: StarIcon, module: 'roles' },
+        { id: 'permisos', label: 'Permisos', icon: LockIcon, module: 'permisos' },
+        { id: 'bitacora', label: 'Bitácora', icon: FaHistory, module: 'bitacora' }
+      ]
+    },
+    pedidos: {
+      label: 'Pedidos',
+      items: [
+        { id: 'motos', label: 'Motos', icon: FaMotorcycle, module: 'motos' },
+        { id: 'diagnosticos', label: 'Diagnósticos', icon: FaClipboardList, module: 'diagnosticos' },
+        { id: 'servicios', label: 'Servicios', icon: FaTools, module: 'servicios' },
+        { id: 'proformas', label: 'Proformas', icon: FaFileInvoiceDollar, module: 'proformas' }
+      ]
+    },
+    produccion: {
+      label: 'Producción',
+      items: [
+        { id: 'horarios', label: 'Horarios', icon: FaClock, module: 'horarios' },
+        { id: 'ordenes-trabajo', label: 'Órdenes de Trabajo', icon: FaClipboardCheck, module: 'ordenes_trabajo' },
+        { id: 'comisiones', label: 'Comisiones', icon: FaMoneyBillWave, module: 'comisiones' },
+        { id: 'marcas-herramienta', label: 'Marcas de Herramientas', icon: FaTag, module: 'marcas_herramienta' },
+        { id: 'herramientas', label: 'Herramientas', icon: FaWrench, module: 'herramientas' },
+        { id: 'movimientos-herramienta', label: 'Movimientos', icon: FaExchangeAlt, module: 'movimientos_herramienta' }
+      ]
+    },
+    utiles: {
+      label: 'Útiles',
+      items: [
+        { id: 'reportes', label: 'Reportes', icon: InfoIcon, alwaysShow: true },
+        { id: 'documentos', label: 'Documentos', icon: CheckCircleIcon, alwaysShow: true },
+        { id: 'configuracion', label: 'Configuración', icon: SettingsIcon, alwaysShow: true }
+      ]
+    }
+  };
 
-  // Filtrar items del menú según permisos
-  const visibleMenuItems = menuItems.filter(item => {
-    // Siempre mostrar items marcados como alwaysShow
-    if (item.alwaysShow) return true;
-    // Si tiene módulo asociado, verificar permisos
-    if (item.module) return canAccessModule(item.module);
-    // Por defecto mostrar
-    return true;
-  });
+  const filterMenuItems = (items) => {
+    return items.filter(item => {
+      if (item.alwaysShow) return true;
+      if (item.module) return canAccessModule(item.module);
+      return true;
+    });
+  };
 
   return (
-    <>
-      {/* Overlay móvil */}
-      {isOpen && (
-        <Box
-          display={{ base: 'block', md: 'none' }}
-          position="fixed"
-          top={0}
-          left={0}
-          right={0}
-          bottom={0}
-          bg="blackAlpha.600"
-          zIndex={19}
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar */}
-      <Box
-        display={{ base: isOpen ? 'flex' : 'none', md: 'flex' }}
-        position="fixed"
-        left={0}
-        top={0}
-        h="100vh"
-        w="260px"
-        bg="white"
-        borderRight="1px"
-        borderColor="gray.200"
-        flexDirection="column"
-        zIndex={20}
-      >
-        {/* Logo/Header */}
-        <Box p={6} borderBottom="1px" borderColor="gray.200">
-          <Flex align="center" gap={3}>
+    <Box
+      as="nav"
+      pos="fixed"
+      top="0"
+      left="0"
+      zIndex={20}
+      h="100vh"
+      pb="10"
+      overflowX="hidden"
+      overflowY="auto"
+      bg="white"
+      borderRight="1px"
+      borderColor="gray.200"
+      w={{ base: "full", md: "260px" }}
+      display={{ base: isOpen ? "block" : "none", md: "block" }}
+    >
+      <VStack spacing={0} align="stretch" height="100vh">
+        <Box p={4} borderBottom="1px" borderColor="gray.200">
+          <Flex align="center">
             <Avatar size="sm" name={userEmail} bg="teal.500" />
-            <Box flex={1}>
-              <Text fontWeight="bold" fontSize="sm" noOfLines={1}>
+            <Box flex={1} ml={3}>
+              <Text fontWeight="semibold" fontSize="sm" noOfLines={1}>
                 {userEmail.split('@')[0]}
               </Text>
               <Text fontSize="xs" color="gray.500">
@@ -92,45 +101,77 @@ function Sidebar({ userEmail, onMenuClick, activeMenu = 'dashboard', isOpen, onC
             </Box>
           </Flex>
         </Box>
+        
+        <Box flex="1" overflowY="auto" py={4}>
+          <Accordion allowMultiple defaultIndex={[0]}>
+            {Object.entries(menuGroups).map(([key, group]) => {
+              const visibleItems = filterMenuItems(group.items);
+              if (visibleItems.length === 0) return null;
 
-        {/* Menu Items */}
-        <VStack spacing={1} align="stretch" p={4} flex={1} overflowY="auto">
-          {visibleMenuItems.map((item) => (
-            <Box
-              key={item.id}
-              px={4}
-              py={3}
-              borderRadius="lg"
-              cursor="pointer"
-              bg={activeMenu === item.id ? 'teal.50' : 'transparent'}
-              color={activeMenu === item.id ? 'teal.600' : 'gray.700'}
-              _hover={{
-                bg: activeMenu === item.id ? 'teal.50' : 'gray.50',
-              }}
-              transition="all 0.2s"
-              onClick={() => {
-                onMenuClick(item.id)
-                onClose()
-              }}
-            >
-              <HStack spacing={3}>
-                <Icon as={item.icon} boxSize={5} />
-                <Text fontWeight={activeMenu === item.id ? 'semibold' : 'medium'} fontSize="sm">
-                  {item.label}
-                </Text>
-              </HStack>
-            </Box>
-          ))}
-        </VStack>
+            return (
+              <AccordionItem key={key}>
+                <AccordionButton py={3} _hover={{ bg: 'gray.100' }}>
+                  <Box flex="1" textAlign="left">
+                    <Text fontWeight="medium" color="gray.700">{group.label}</Text>
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+                <AccordionPanel pb={4}>
+                  <VStack spacing={1} align="stretch">
+                    {visibleItems.map((item) => (
+                      <Flex
+                        key={item.id}
+                        align="center"
+                        px="4"
+                        py="3"
+                        cursor="pointer"
+                        role="group"
+                        fontSize="sm"
+                        borderRadius="md"
+                        bg={activeMenu === item.id ? 'teal.50' : 'transparent'}
+                        color={activeMenu === item.id ? 'teal.600' : 'gray.700'}
+                        _hover={{
+                          bg: activeMenu === item.id ? 'teal.50' : 'gray.50',
+                        }}
+                        onClick={() => {
+                          onMenuClick(item.id);
+                          onClose();
+                        }}
+                      >
+                        <Icon
+                          as={item.icon}
+                          boxSize="4"
+                          color={activeMenu === item.id ? 'teal.500' : 'gray.500'}
+                          _groupHover={{
+                            color: 'teal.500',
+                          }}
+                        />
+                        <Text
+                          ml="3"
+                          fontWeight={activeMenu === item.id ? 'semibold' : 'medium'}
+                          _groupHover={{
+                            color: 'teal.500',
+                          }}
+                        >
+                          {item.label}
+                        </Text>
+                      </Flex>
+                    ))}
+                  </VStack>
+                </AccordionPanel>
+              </AccordionItem>
+            );
+          })}
+          </Accordion>
+        </Box>
 
-        {/* Footer */}
-        <Box p={4} borderTop="1px" borderColor="gray.200">
+        <Box p={4} borderTop="1px" borderColor="gray.200" bg="white">
           <Text fontSize="xs" color="gray.500" textAlign="center">
             © 2025 Proyecto SI1
           </Text>
         </Box>
-      </Box>
-    </>
+      </VStack>
+    </Box>
   )
 }
 

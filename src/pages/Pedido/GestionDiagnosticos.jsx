@@ -24,11 +24,11 @@ import {
   ListItem,
   ListIcon,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon, ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons'
-import { FaCheckCircle } from 'react-icons/fa'
-import DiagnosticoModal from '../components/DiagnosticoModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon, ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { FaCheckCircle } from "react-icons/fa";
+import DiagnosticoModal from "../../components/DiagnosticoModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionDiagnosticos() {
   const [diagnosticos, setDiagnosticos] = useState([])

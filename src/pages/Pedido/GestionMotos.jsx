@@ -19,10 +19,10 @@ import {
   InputGroup,
   InputLeftElement,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
-import MotoModal from '../components/MotoModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from "@chakra-ui/icons";
+import MotoModal from "../../components/MotoModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionMotos() {
   const [motos, setMotos] = useState([])

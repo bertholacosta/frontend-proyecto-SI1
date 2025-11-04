@@ -30,10 +30,10 @@ import {
   StatGroup,
   SimpleGrid
 } from '@chakra-ui/react';
-import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaExchangeAlt } from 'react-icons/fa';
-import MovimientoHerramientaModal from '../components/MovimientoHerramientaModal';
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
-import { API_URL } from '../config'
+import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaExchangeAlt } from "react-icons/fa";
+import MovimientoHerramientaModal from "../../components/MovimientoHerramientaModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 const GestionMovimientosHerramienta = () => {
   const [movimientos, setMovimientos] = useState([]);

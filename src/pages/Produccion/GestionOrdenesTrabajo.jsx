@@ -22,10 +22,10 @@ import {
   Tooltip,
   VStack,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon, InfoIcon } from '@chakra-ui/icons'
-import OrdenTrabajoModal from '../components/OrdenTrabajoModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon, InfoIcon } from "@chakra-ui/icons";
+import OrdenTrabajoModal from "../../components/OrdenTrabajoModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionOrdenesTrabajo() {
   const [ordenes, setOrdenes] = useState([])

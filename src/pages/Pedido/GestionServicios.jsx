@@ -23,10 +23,10 @@ import {
   Heading,
   Badge,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
-import ServicioModal from '../components/ServicioModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from "@chakra-ui/icons";
+import ServicioModal from "../../components/ServicioModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionServicios() {
   const [servicios, setServicios] = useState([])

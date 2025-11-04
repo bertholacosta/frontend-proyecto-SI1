@@ -35,9 +35,9 @@ import {
   InfoIcon,
   ChevronDownIcon 
 } from '@chakra-ui/icons'
-import ComisionModal from '../components/ComisionModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import ComisionModal from '../../components/ComisionModal'
+import DeleteConfirmDialog from '../../components/DeleteConfirmDialog'
+import { API_URL } from '../../config'
 
 function GestionComisiones() {
   const [comisiones, setComisiones] = useState([])

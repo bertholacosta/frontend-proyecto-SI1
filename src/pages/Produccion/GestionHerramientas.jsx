@@ -25,10 +25,10 @@ import {
   Text,
   Tooltip
 } from '@chakra-ui/react';
-import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaTools } from 'react-icons/fa';
-import HerramientaModal from '../components/HerramientaModal';
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
-import { API_URL } from '../config';
+import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaTools } from "react-icons/fa";
+import HerramientaModal from "../../components/HerramientaModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 const GestionHerramientas = () => {
   const [herramientas, setHerramientas] = useState([]);

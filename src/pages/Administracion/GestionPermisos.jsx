@@ -19,17 +19,16 @@ import {
   InputGroup,
   InputLeftElement,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from '@chakra-ui/icons'
-import EmpleadoModal from '../components/EmpleadoModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon } from "@chakra-ui/icons";
+import PermisoModal from "../../components/PermisoModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
-function GestionEmpleados() {
-  const [empleados, setEmpleados] = useState([])
-  const [usuarios, setUsuarios] = useState([])
+function GestionPermisos() {
+  const [permisos, setPermisos] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedEmpleado, setSelectedEmpleado] = useState(null)
-  const [empleadoToDelete, setEmpleadoToDelete] = useState(null)
+  const [selectedPermiso, setSelectedPermiso] = useState(null)
+  const [permisoToDelete, setPermisoToDelete] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   
   const { isOpen, onOpen, onClose } = useDisclosure()
@@ -38,25 +37,24 @@ function GestionEmpleados() {
 
  
   useEffect(() => {
-    fetchEmpleados()
-    fetchUsuarios()
+    fetchPermisos()
   }, [])
 
-  const fetchEmpleados = async () => {
+  const fetchPermisos = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`${API_URL}/empleados`, {
+      const response = await fetch(`${API_URL}/permisos`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       const data = await response.json()
-      setEmpleados(data.empleados || [])
+      setPermisos(data.permisos || [])
       setLoading(false)
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudieron cargar los empleados',
+        description: 'No se pudieron cargar los permisos',
         status: 'error',
         duration: 3000,
       })
@@ -64,40 +62,25 @@ function GestionEmpleados() {
     }
   }
 
-  const fetchUsuarios = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await fetch(`${API_URL}/usuarios`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      const data = await response.json()
-      setUsuarios(data.usuarios || [])
-    } catch (error) {
-      console.error('Error al cargar usuarios:', error)
-    }
-  }
-
   const handleCreate = () => {
-    setSelectedEmpleado(null)
+    setSelectedPermiso(null)
     onOpen()
   }
 
-  const handleEdit = (empleado) => {
-    setSelectedEmpleado(empleado)
+  const handleEdit = (permiso) => {
+    setSelectedPermiso(permiso)
     onOpen()
   }
 
-  const handleDelete = (empleado) => {
-    setEmpleadoToDelete(empleado)
+  const handleDelete = (permiso) => {
+    setPermisoToDelete(permiso)
     onDeleteOpen()
   }
 
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`${API_URL}/empleados/${empleadoToDelete.ci}`, {
+      const response = await fetch(`${API_URL}/permisos/${permisoToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -106,18 +89,18 @@ function GestionEmpleados() {
 
       if (response.ok) {
         toast({
-          title: 'Empleado eliminado',
+          title: 'Permiso eliminado',
           status: 'success',
           duration: 3000,
         })
-        fetchEmpleados()
+        fetchPermisos()
       } else {
         throw new Error('Error al eliminar')
       }
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'No se pudo eliminar el empleado',
+        description: 'No se pudo eliminar el permiso',
         status: 'error',
         duration: 3000,
       })
@@ -125,14 +108,14 @@ function GestionEmpleados() {
     onDeleteClose()
   }
 
-  const handleSave = async (empleadoData) => {
+  const handleSave = async (permisoData) => {
     try {
       const token = localStorage.getItem('token')
-      const url = selectedEmpleado 
-        ? `${API_URL}/empleados/${selectedEmpleado.ci}`
-        : `${API_URL}/empleados`
+      const url = selectedPermiso 
+        ? `${API_URL}/permisos/${selectedPermiso.id}`
+        : `${API_URL}/permisos`
       
-      const method = selectedEmpleado ? 'PUT' : 'POST'
+      const method = selectedPermiso ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
         method,
@@ -140,16 +123,16 @@ function GestionEmpleados() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(empleadoData)
+        body: JSON.stringify(permisoData)
       })
 
       if (response.ok) {
         toast({
-          title: selectedEmpleado ? 'Empleado actualizado' : 'Empleado creado',
+          title: selectedPermiso ? 'Permiso actualizado' : 'Permiso creado',
           status: 'success',
           duration: 3000,
         })
-        fetchEmpleados()
+        fetchPermisos()
         onClose()
       } else {
         const error = await response.json()
@@ -165,16 +148,9 @@ function GestionEmpleados() {
     }
   }
 
-  const filteredEmpleados = empleados.filter(empleado =>
-    empleado.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    empleado.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    empleado.ci.toString().includes(searchTerm)
+  const filteredPermisos = permisos.filter(permiso =>
+    permiso.nombre.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES')
-  }
 
   if (loading) {
     return (
@@ -192,13 +168,13 @@ function GestionEmpleados() {
             <SearchIcon color="gray.400" />
           </InputLeftElement>
           <Input
-            placeholder="Buscar empleados..."
+            placeholder="Buscar permisos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </InputGroup>
         <Button leftIcon={<AddIcon />} colorScheme="teal" onClick={handleCreate}>
-          Nuevo Empleado
+          Nuevo Permiso
         </Button>
       </HStack>
 
@@ -206,38 +182,28 @@ function GestionEmpleados() {
         <Table variant="simple">
           <Thead bg="gray.50">
             <Tr>
-              <Th>CI</Th>
-              <Th>Nombre Completo</Th>
-              <Th>Teléfono</Th>
-              <Th>Dirección</Th>
-              <Th>Fecha Nacimiento</Th>
-              <Th>Usuario Asignado</Th>
+              <Th>ID</Th>
+              <Th>Nombre</Th>
+              <Th>Roles Asignados</Th>
               <Th>Acciones</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {filteredEmpleados.length === 0 ? (
+            {filteredPermisos.length === 0 ? (
               <Tr>
-                <Td colSpan={7} textAlign="center" py={8}>
-                  <Text color="gray.500">No hay empleados registrados</Text>
+                <Td colSpan={4} textAlign="center" py={8}>
+                  <Text color="gray.500">No hay permisos registrados</Text>
                 </Td>
               </Tr>
             ) : (
-              filteredEmpleados.map((empleado) => (
-                <Tr key={empleado.ci} _hover={{ bg: 'gray.50' }}>
-                  <Td fontWeight="medium">{empleado.ci}</Td>
-                  <Td>{empleado.nombre} {empleado.apellidos}</Td>
-                  <Td>{empleado.telefono}</Td>
-                  <Td maxW="200px" isTruncated>{empleado.direccion}</Td>
-                  <Td>{formatDate(empleado.fechaNac)}</Td>
+              filteredPermisos.map((permiso) => (
+                <Tr key={permiso.id} _hover={{ bg: 'gray.50' }}>
+                  <Td>{permiso.id}</Td>
+                  <Td fontWeight="medium">{permiso.nombre}</Td>
                   <Td>
-                    {empleado.usuario ? (
-                      <Badge colorScheme="green">
-                        {empleado.usuario.username}
-                      </Badge>
-                    ) : (
-                      <Badge colorScheme="gray">Sin usuario</Badge>
-                    )}
+                    <Badge colorScheme="purple">
+                      {permiso._count?.roles || 0} roles
+                    </Badge>
                   </Td>
                   <Td>
                     <HStack spacing={2}>
@@ -246,16 +212,16 @@ function GestionEmpleados() {
                         size="sm"
                         colorScheme="blue"
                         variant="ghost"
-                        onClick={() => handleEdit(empleado)}
-                        aria-label="Editar empleado"
+                        onClick={() => handleEdit(permiso)}
+                        aria-label="Editar permiso"
                       />
                       <IconButton
                         icon={<DeleteIcon />}
                         size="sm"
                         colorScheme="red"
                         variant="ghost"
-                        onClick={() => handleDelete(empleado)}
-                        aria-label="Eliminar empleado"
+                        onClick={() => handleDelete(permiso)}
+                        aria-label="Eliminar permiso"
                       />
                     </HStack>
                   </Td>
@@ -266,11 +232,10 @@ function GestionEmpleados() {
         </Table>
       </Box>
 
-      <EmpleadoModal
+      <PermisoModal
         isOpen={isOpen}
         onClose={onClose}
-        empleado={selectedEmpleado}
-        usuarios={usuarios}
+        permiso={selectedPermiso}
         onSave={handleSave}
       />
 
@@ -278,11 +243,11 @@ function GestionEmpleados() {
         isOpen={isDeleteOpen}
         onClose={onDeleteClose}
         onConfirm={confirmDelete}
-        title="Eliminar Empleado"
-        message={`¿Estás seguro de eliminar al empleado ${empleadoToDelete?.nombre} ${empleadoToDelete?.apellidos} (CI: ${empleadoToDelete?.ci})?`}
+        title="Eliminar Permiso"
+        message={`¿Estás seguro de eliminar el permiso "${permisoToDelete?.nombre}"?`}
       />
     </Box>
   )
 }
 
-export default GestionEmpleados
+export default GestionPermisos

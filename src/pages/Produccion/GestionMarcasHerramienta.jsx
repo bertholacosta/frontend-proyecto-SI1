@@ -22,10 +22,10 @@ import {
   InputGroup,
   InputLeftElement
 } from '@chakra-ui/react';
-import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaTools } from 'react-icons/fa';
-import MarcaHerramientaModal from '../components/MarcaHerramientaModal';
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog';
-import { API_URL } from '../config';
+import { FaPlus, FaEllipsisV, FaEdit, FaTrash, FaSearch, FaTools } from "react-icons/fa";
+import MarcaHerramientaModal from "../../components/MarcaHerramientaModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 const GestionMarcasHerramienta = () => {
   const [marcas, setMarcas] = useState([]);

@@ -22,11 +22,11 @@ import {
   GridItem,
   Flex,
 } from '@chakra-ui/react'
-import { AddIcon, EditIcon, DeleteIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons'
-import HorarioModal from '../components/HorarioModal'
-import HorarioEmpleadoModal from '../components/HorarioEmpleadoModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { AddIcon, EditIcon, DeleteIcon, ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import HorarioModal from "../../components/HorarioModal";
+import HorarioEmpleadoModal from "../../components/HorarioEmpleadoModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionHorarios() {
   const [horarios, setHorarios] = useState([])

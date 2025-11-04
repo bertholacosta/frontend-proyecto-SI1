@@ -19,11 +19,11 @@ import {
   InputGroup,
   InputLeftElement,
 } from '@chakra-ui/react'
-import { EditIcon, DeleteIcon, AddIcon, SearchIcon, LockIcon } from '@chakra-ui/icons'
-import RolModal from '../components/RolModal'
-import PermisosRolModal from '../components/PermisosRolModal'
-import DeleteConfirmDialog from '../components/DeleteConfirmDialog'
-import { API_URL } from '../config'
+import { EditIcon, DeleteIcon, AddIcon, SearchIcon, LockIcon } from "@chakra-ui/icons";
+import RolModal from "../../components/RolModal";
+import PermisosRolModal from "../../components/PermisosRolModal";
+import DeleteConfirmDialog from "../../components/DeleteConfirmDialog";
+import { API_URL } from "../../config";
 
 function GestionRoles() {
   const [roles, setRoles] = useState([])
