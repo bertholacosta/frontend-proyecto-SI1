@@ -25,7 +25,6 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
     nombre: '',
     apellidos: '',
     direccion: '',
-    fechaNac: '',
     telefono: ''
   })
   const [errors, setErrors] = useState({})
@@ -39,7 +38,6 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
         nombre: empleado.nombre || '',
         apellidos: empleado.apellidos || '',
         direccion: empleado.direccion || '',
-        fechaNac: empleado.fechaNac ? new Date(empleado.fechaNac).toISOString().split('T')[0] : '',
         telefono: empleado.telefono || ''
       })
     } else {
@@ -49,7 +47,6 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
         nombre: '',
         apellidos: '',
         direccion: '',
-        fechaNac: '',
         telefono: ''
       })
     }
@@ -81,17 +78,6 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
       newErrors.direccion = 'La dirección es requerida'
     } else if (formData.direccion.length > 70) {
       newErrors.direccion = 'La dirección no puede exceder 70 caracteres'
-    }
-
-    if (!formData.fechaNac) {
-      newErrors.fechaNac = 'La fecha de nacimiento es requerida'
-    } else {
-      const fechaNacimiento = new Date(formData.fechaNac)
-      const hoy = new Date()
-      const edad = hoy.getFullYear() - fechaNacimiento.getFullYear()
-      if (edad < 18 || edad > 100) {
-        newErrors.fechaNac = 'El empleado debe tener entre 18 y 100 años'
-      }
     }
 
     if (!formData.telefono.trim()) {
@@ -217,20 +203,7 @@ function EmpleadoModal({ isOpen, onClose, empleado, usuarios, onSave }) {
                 </FormControl>
               </GridItem>
 
-              <GridItem>
-                <FormControl isInvalid={errors.fechaNac}>
-                  <FormLabel>Fecha de Nacimiento</FormLabel>
-                  <Input
-                    name="fechaNac"
-                    type="date"
-                    value={formData.fechaNac}
-                    onChange={handleChange}
-                  />
-                  <FormErrorMessage>{errors.fechaNac}</FormErrorMessage>
-                </FormControl>
-              </GridItem>
-
-              <GridItem>
+              <GridItem colSpan={2}>
                 <FormControl>
                   <FormLabel>Usuario Asignado (Opcional)</FormLabel>
                   <Select

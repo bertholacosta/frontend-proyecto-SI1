@@ -171,11 +171,6 @@ function GestionEmpleados() {
     empleado.ci.toString().includes(searchTerm)
   )
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES')
-  }
-
   if (loading) {
     return (
       <Box textAlign="center" py={10}>
@@ -210,7 +205,6 @@ function GestionEmpleados() {
               <Th>Nombre Completo</Th>
               <Th>Teléfono</Th>
               <Th>Dirección</Th>
-              <Th>Fecha Nacimiento</Th>
               <Th>Usuario Asignado</Th>
               <Th>Acciones</Th>
             </Tr>
@@ -218,7 +212,7 @@ function GestionEmpleados() {
           <Tbody>
             {filteredEmpleados.length === 0 ? (
               <Tr>
-                <Td colSpan={7} textAlign="center" py={8}>
+                <Td colSpan={6} textAlign="center" py={8}>
                   <Text color="gray.500">No hay empleados registrados</Text>
                 </Td>
               </Tr>
@@ -229,7 +223,6 @@ function GestionEmpleados() {
                   <Td>{empleado.nombre} {empleado.apellidos}</Td>
                   <Td>{empleado.telefono}</Td>
                   <Td maxW="200px" isTruncated>{empleado.direccion}</Td>
-                  <Td>{formatDate(empleado.fechaNac)}</Td>
                   <Td>
                     {empleado.usuario ? (
                       <Badge colorScheme="green">
