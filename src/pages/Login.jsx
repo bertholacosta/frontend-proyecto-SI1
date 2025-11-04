@@ -47,6 +47,9 @@ function Login() {
         localStorage.setItem('token', data.token)
         localStorage.setItem('user', JSON.stringify(data.usuario))
         
+        // Disparar evento personalizado para notificar el login exitoso
+        window.dispatchEvent(new Event('loginSuccess'))
+        
         toast({
           title: 'Inicio de sesión exitoso',
           description: 'Bienvenido de nuevo',

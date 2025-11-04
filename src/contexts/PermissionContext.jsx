@@ -18,6 +18,17 @@ export const PermissionProvider = ({ children }) => {
 
   useEffect(() => {
     fetchPermissions();
+    
+    // Escuchar eventos de login exitoso
+    const handleLoginSuccess = () => {
+      fetchPermissions();
+    };
+    
+    window.addEventListener('loginSuccess', handleLoginSuccess);
+    
+    return () => {
+      window.removeEventListener('loginSuccess', handleLoginSuccess);
+    };
   }, []);
 
   const fetchPermissions = async () => {
